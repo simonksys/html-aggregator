@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桌游骰子趣味机制大全</title>
+    <style>
+        :root {
+            --bg: #f5f0e8;
+            --card-bg: #ffffff;
+            --text: #2c2416;
+            --text-secondary: #5a4e3c;
+            --text-muted: #7a6e5c;
+            --accent-1: #c0392b;
+            --accent-2: #d4740e;
+            --accent-3: #b8860b;
+            --accent-4: #1a7a3a;
+            --accent-5: #0e7a6d;
+            --accent-6: #1a5c8a;
+            --accent-7: #6b3fa0;
+            --highlight: #fdf3c9;
+            --highlight-border: #e8c547;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.10);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.14);
+            --radius-sm: 8px;
+            --radius: 14px;
+            --radius-lg: 20px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle, rgba(180, 160, 130, 0.10) 1px, transparent 1px);
+            background-size: 28px 28px;
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ========== 页面容器 ========== */
+        .page-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ========== 头部 ========== */
+        .header {
+            text-align: center;
+            padding: 40px 24px 28px;
+            position: relative;
+        }
+
+        .header-icon-row {
+            font-size: 3rem;
+            letter-spacing: 8px;
+            margin-bottom: 6px;
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: #1e1810;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            letter-spacing: 0.03em;
+        }
+
+        .header::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #c5a44e, #e0c878, #c5a44e);
+            border-radius: 2px;
+            margin: 20px auto 0;
+        }
+
+        /* ========== 介绍段落 ========== */
+        .intro {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 36px;
+            color: var(--text-secondary);
+            font-size: 1.02rem;
+            padding: 0 12px;
+        }
+
+        /* ========== 卡片网格 ========== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: 22px;
+            margin-bottom: 40px;
+        }
+
+        /* ========== 单张卡片 ========== */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 26px 28px 24px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--transition), box-shadow var(--transition);
+            border-left: 5px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* 各卡片左侧色条 */
+        .card.card--1 {
+            border-left-color: var(--accent-1);
+        }
+        .card.card--2 {
+            border-left-color: var(--accent-2);
+        }
+        .card.card--3 {
+            border-left-color: var(--accent-3);
+        }
+        .card.card--4 {
+            border-left-color: var(--accent-4);
+        }
+        .card.card--5 {
+            border-left-color: var(--accent-5);
+        }
+        .card.card--6 {
+            border-left-color: var(--accent-6);
+        }
+        .card.card--7 {
+            border-left-color: var(--accent-7);
+        }
+
+        /* 卡片顶部装饰圆点 */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            opacity: 0.07;
+            pointer-events: none;
+            transition: opacity var(--transition);
+        }
+        .card:hover::before {
+            opacity: 0.13;
+        }
+        .card.card--1::before {
+            background: var(--accent-1);
+        }
+        .card.card--2::before {
+            background: var(--accent-2);
+        }
+        .card.card--3::before {
+            background: var(--accent-3);
+        }
+        .card.card--4::before {
+            background: var(--accent-4);
+        }
+        .card.card--5::before {
+            background: var(--accent-5);
+        }
+        .card.card--6::before {
+            background: var(--accent-6);
+        }
+        .card.card--7::before {
+            background: var(--accent-7);
+        }
+
+        /* 骰子点数装饰 - 卡片右上角 */
+        .card .dice-dots {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            display: grid;
+            gap: 4px;
+            opacity: 0.16;
+            pointer-events: none;
+            transition: opacity var(--transition);
+        }
+        .card:hover .dice-dots {
+            opacity: 0.28;
+        }
+        .dice-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #3a3024;
+        }
+
+        /* 卡片标题行 */
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2px;
+            position: relative;
+            z-index: 1;
+        }
+        .card-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f5ef;
+        }
+        .card.card--1 .card-icon {
+            background: #fef5f5;
+        }
+        .card.card--2 .card-icon {
+            background: #fef9f3;
+        }
+        .card.card--3 .card-icon {
+            background: #fdf8ee;
+        }
+        .card.card--4 .card-icon {
+            background: #f2faf5;
+        }
+        .card.card--5 .card-icon {
+            background: #f2faf9;
+        }
+        .card.card--6 .card-icon {
+            background: #f3f7fb;
+        }
+        .card.card--7 .card-icon {
+            background: #f8f4fc;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1e1810;
+            letter-spacing: 0.02em;
+            line-height: 1.3;
+        }
+        .card-title .en-name {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+            margin-top: 1px;
+        }
+
+        /* 卡片内容 */
+        .card-body {
+            position: relative;
+            z-index: 1;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 子类别 */
+        .sub-mechanic {
+            background: #fafaf7;
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            border: 1px solid #ece8df;
+            transition: background var(--transition);
+        }
+        .sub-mechanic:hover {
+            background: #f7f4ed;
+        }
+        .sub-label {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #4a3e2e;
+            margin-bottom: 4px;
+            letter-spacing: 0.03em;
+        }
+        .sub-desc {
+            font-size: 0.91rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* 游戏名称高亮 */
+        .game-name {
+            display: inline;
+            font-weight: 700;
+            background: linear-gradient(180deg, transparent 58%, var(--highlight) 58%);
+            padding: 0 3px;
+            border-radius: 2px;
+            white-space: nowrap;
+            transition: background 0.2s;
+            cursor: default;
+        }
+        .game-name:hover {
+            background: linear-gradient(180deg, transparent 40%, #fce9a8 40%);
+        }
+        .game-name-en {
+            font-weight: 600;
+            font-style: italic;
+            color: #3a3024;
+            background: linear-gradient(180deg, transparent 58%, #fdf3d0 58%);
+            padding: 0 2px;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+
+        /* ========== 总结区块 ========== */
+        .summary-section {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 32px 30px 28px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 32px;
+            border: 1px solid #e8e2d6;
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #c5a44e, #e0c878, #c5a44e, #e0c878, #c5a44e);
+            border-radius: 20px 20px 0 0;
+        }
+        .summary-section h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1e1810;
+            margin-bottom: 18px;
+            letter-spacing: 0.03em;
+            text-align: center;
+        }
+        .summary-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 14px;
+            list-style: none;
+            padding: 0;
+        }
+        .summary-list li {
+            background: #fafaf6;
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            font-size: 0.93rem;
+            color: var(--text-secondary);
+            border: 1px solid #ece8df;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            transition: background var(--transition), transform var(--transition);
+            cursor: default;
+        }
+        .summary-list li:hover {
+            background: #f5f1e8;
+            transform: translateY(-2px);
+        }
+        .summary-list .bullet-emoji {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .summary-closing {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 1rem;
+            color: #5a4e3c;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            line-height: 1.7;
+        }
+
+        /* ========== 页脚 ========== */
+        .footer {
+            text-align: center;
+            padding: 16px 12px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 0.03em;
+        }
+        .footer span {
+            display: inline-block;
+            animation: float 2.5s ease-in-out infinite;
+        }
+
+        /* ========== 响应式调整 ========== */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.7rem;
+            }
+            .header-icon-row {
+                font-size: 2.2rem;
+                letter-spacing: 4px;
+            }
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .card {
+                padding: 20px 18px 18px;
+            }
+            .card-title {
+                font-size: 1.05rem;
+            }
+            .summary-list {
+                grid-template-columns: 1fr;
+            }
+            .summary-section {
+                padding: 24px 18px 20px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            body {
+                padding: 10px;
+                font-size: 15px;
+            }
+            .header {
+                padding: 24px 12px 16px;
+            }
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            .card {
+                padding: 16px 14px 14px;
+                border-radius: 12px;
+            }
+            .card-body {
+                font-size: 0.88rem;
+            }
+            .sub-mechanic {
+                padding: 10px 12px;
+            }
+        }
+
+        /* ========== 打印样式 ========== */
+        @media print {
+            body {
+                background: #fff;
+                background-image: none;
+                color: #000;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+            }
+            .card:hover {
+                transform: none;
+                box-shadow: none;
+            }
+            .summary-section {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+
+        <!-- ==================== 头部 ==================== -->
+        <header class="header">
+            <div class="header-icon-row">🎲🎲🎲</div>
+            <h1>桌游骰子趣味机制大全</h1>
+            <p class="subtitle">当骰子不只是"比大小"——七大类创新机制深度解析</p>
+        </header>
+
+        <p class="intro">
+            骰子这个古老的游戏道具，在设计师手中早已超越了简单的随机数生成器。从亲手<strong>改造骰面</strong>到<strong>心理博弈</strong>，
+            从<strong>工人放置</strong>到<strong>共享蹭资源</strong>——以下七大类机制，展现了骰子在桌面上的无限可能。
+        </p>
+
+        <!-- ==================== 卡片网格 ==================== -->
+        <div class="cards-grid">
+
+            <!-- 机制 1：风险控制与心理博弈 -->
+            <article class="card card--1">
+                <div class="dice-dots" style="grid-template-columns: repeat(2, 1fr);" aria-hidden="true">
+                    <span class="dice-dot"></span><span class="dice-dot"></span>
+                    <span class="dice-dot"></span><span class="dice-dot"></span>
+                </div>
+                <div class="card-header">
+                    <span class="card-icon">😰</span>
+                    <h3 class="card-title">
+                        风险控制与心理博弈
+                        <span class="en-name">Push Your Luck</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:2px;">在"见好就收"和"再搏一把"之间反复拉扯，是桌面上最能调动情绪的机制。</p>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🎯 经典方式</div>
+                        <div class="sub-desc">玩家可重复投掷部分骰子，但每次重投都伴随更大风险。如 <span class="game-name">《欲罢不能》</span> 和 <span class="game-name">《快艇骰子》</span>，在一次次重投中凑出最大价值组合。</div>
+                    </div>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">📈 成本递增</div>
+                        <div class="sub-desc">重投本身带来惩罚。例如 <span class="game-name-en">Balloon Pop!</span> 中，每次重投须增加一颗骰子，加速轨道顶满而"爆炸"损失分数。</div>
+                    </div>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🤔 对手下注</div>
+                        <div class="sub-desc">风险也来自对其他玩家的预判。在 <span class="game-name">《神骰鬼脸》</span> 中，猜测对手会选哪颗骰子，猜对获奖，猜错则对手获利。</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 机制 2：骰子构筑与改造 -->
+            <article class="card card--2">
+                <div class="dice-dots" style="grid-template-columns: repeat(3, 1fr);" aria-hidden="true">
+                    <span class="dice-dot"></span><span></span><span class="dice-dot"></span>
+                    <span></span><span class="dice-dot"></span><span></span>
+                    <span class="dice-dot"></span><span></span><span class="dice-dot"></span>
+                </div>
+                <div class="card-header">
+                    <span class="card-icon">🔧</span>
+                    <h3 class="card-title">
+                        骰子构筑与改造
+                        <span class="en-name">Dice Construction &amp; Bag-Building</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:2px;">将策略延伸到投掷之前，通过改变骰子的"内容"来掌控随机性，创造专属个人骰子。</p>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🔩 物理改造骰面</div>
+                        <div class="sub-desc">最直观的方式。在 <span class="game-name">《锻骰物语》</span> 中，骰子面可拆卸，玩家购买更强大的骰面替换原有骰面，亲手打造专属"资源引擎"。</div>
+                    </div>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🎒 构建骰子池</div>
+                        <div class="sub-desc">构筑的不是骰面，而是盲抽的骰子池。如 <span class="game-name">《骰子开拓者》</span> 和 <span class="game-name">《盖利亚魔法战士》</span>，通过抽取不同颜色/功能的骰子来执行动作。</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 机制 3：骰子放置与分配 -->
+            <article class="card card--3">
+                <div class="dice-dots" style="grid-template-columns: repeat(3, 1fr);" aria-hidden="true">
+                    <span class="dice-dot"></span><span></span><span class="dice-dot"></span>
+                    <span class="dice-dot"></span><span class="dice-dot"></span><span class="dice-dot"></span>
+                    <span></span><span></span><span></span>
+                </div>
+                <div class="card-header">
+                    <span class="card-icon">📍</span>
+                    <h3 class="card-title">
+                        骰子放置与分配
+                        <span class="en-name">Dice Placement / Allocation</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:2px;">将"工人放置"与骰子随机性巧妙结合，骰子的点数、颜色都可能影响行动效果。</p>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🎨 基于点数或颜色的行动</div>
+                        <div class="sub-desc">在 <span class="game-name">《科英布拉》</span> 中，骰子的<strong>颜色</strong>决定资源种类，<strong>点数</strong>关系行动顺位和费用。</div>
+                    </div>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🔢 匹配点数执行行动</div>
+                        <div class="sub-desc">点数必须满足特定要求。在 <span class="game-name">《托瓦城》</span> 和 <span class="game-name">《白城堡》</span> 中，玩家甚至可<strong>花钱购买其他玩家的骰子</strong>来执行动作。</div>
+                    </div>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🃏 特殊行动符号</div>
+                        <div class="sub-desc">骰面印有行动图标。如 <span class="game-name">《怪兽龙门骰》</span> 的骰子有"召唤""移动""攻击"等指令，投出什么就能做什么。</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 机制 4：骰子作为战斗/仲裁核心 -->
+            <article class="card card--4">
+                <div class="dice-dots" style="grid-template-columns: repeat(3, 1fr);" aria-hidden="true">
+                    <span class="dice-dot"></span><span></span><span class="dice-dot"></span>
+                    <span></span><span class="dice-dot"></span><span></span>
+                    <span class="dice-dot"></span><span></span><span class="dice-dot"></span>
+                </div>
+                <div class="card-header">
+                    <span class="card-icon">⚔️</span>
+                    <h3 class="card-title">
+                        骰子作为战斗/仲裁核心
+                        <span class="en-name">Dice as Combat / Resolution Core</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:2px;">在美式或战棋类游戏中，骰子是决定战斗胜负的关键，模拟攻防与属性对抗。</p>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🛡️ 骰子攻防战</div>
+                        <div class="sub-desc">攻击方与防御方分别投掷对应数量的骰子，<strong>按点数从大到小"对子"</strong>，攻击方点数高才能造成伤害。如 <span class="game-name">《地城传奇》</span> 的战斗系统。</div>
+                    </div>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">💪 属性骰子</div>
+                        <div class="sub-desc">骰子具备多个独立属性。在 <span class="game-name">《重装上阵：荣耀之战》</span> 中，每颗骰子同时拥有<strong>行动点数、血量、战斗强度</strong>三个维度。</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 机制 5：骰子用作书写与记录 -->
+            <article class="card card--5">
+                <div class="dice-dots" style="grid-template-columns: repeat(3, 1fr);" aria-hidden="true">
+                    <span class="dice-dot"></span><span></span><span class="dice-dot"></span>
+                    <span class="dice-dot"></span><span></span><span class="dice-dot"></span>
+                    <span class="dice-dot"></span><span></span><span class="dice-dot"></span>
+                </div>
+                <div class="card-header">
+                    <span class="card-icon">✍️</span>
+                    <h3 class="card-title">
+                        骰子用作书写与记录
+                        <span class="en-name">Roll-and-Write</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:2px;">休闲但充满策略感——所有玩家共享一次公开掷骰结果，各自在记录表上做出不同决策。</p>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">📝 填表规划</div>
+                        <div class="sub-desc">玩家把公开掷出的骰子点数填到自己版图的特定区域。在 <span class="game-name">《王國製圖師》</span> 或 <span class="game-name-en">Roll to the Top!</span> 中，需精心规划点数组合来填充版图并激活得分区域。</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 机制 6：骰子共享与蹭资源 -->
+            <article class="card card--6">
+                <div class="dice-dots" style="grid-template-columns: repeat(3, 1fr);" aria-hidden="true">
+                    <span class="dice-dot"></span><span></span><span></span>
+                    <span></span><span class="dice-dot"></span><span></span>
+                    <span></span><span></span><span class="dice-dot"></span>
+                </div>
+                <div class="card-header">
+                    <span class="card-icon">🤝</span>
+                    <h3 class="card-title">
+                        骰子共享与蹭资源
+                        <span class="en-name">Dice Sharing</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:2px;">打破回合界限，让每位玩家都能从一次投掷中受益，极大增强互动性。</p>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🔄 非活跃玩家也能获益</div>
+                        <div class="sub-desc">当主玩家投掷骰子后，<strong>其他玩家可以先"蹭"结果</strong>推进自己的进度，而主玩家只能用保留骰子行动。如 <span class="game-name-en">Bohnanza: The Dice Game</span>，巧妙平衡了优劣。</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 机制 7：超乎想象的创意应用 -->
+            <article class="card card--7">
+                <div class="dice-dots" style="grid-template-columns: repeat(2, 1fr);" aria-hidden="true">
+                    <span class="dice-dot"></span><span></span>
+                    <span></span><span class="dice-dot"></span>
+                </div>
+                <div class="card-header">
+                    <span class="card-icon">💡</span>
+                    <h3 class="card-title">
+                        超乎想象的创意应用
+                        <span class="en-name">Beyond Imagination</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:2px;">设计师们从未停止探索骰子的物理边界，彻底颠覆传统认知。</p>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🏗️ 骰子本身就是棋子/建筑</div>
+                        <div class="sub-desc">在一些创意设计中，骰子不仅是被投掷的对象，还直接扮演了<strong>棋子、建筑甚至版图</strong>的角色。</div>
+                    </div>
+                    <div class="sub-mechanic">
+                        <div class="sub-label">🗺️ 骰子作为场地</div>
+                        <div class="sub-desc">甚至有设想将骰子当作<strong>《大富翁》的棋盘本身</strong>，通过滚动场上的骰子来改变道路和地形，充满想象力。</div>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+        <!-- /cards-grid -->
+
+        <!-- ==================== 总结区块 ==================== -->
+        <section class="summary-section">
+            <h2>💎 如何选择适合你的骰子游戏？</h2>
+            <ul class="summary-list">
+                <li>
+                    <span class="bullet-emoji">🎢</span>
+                    <span><strong>喜欢刺激的心理博弈</strong>？试试<em>推运气类</em>，体验见好就收的紧张感。</span>
+                </li>
+                <li>
+                    <span class="bullet-emoji">🏗️</span>
+                    <span><strong>偏爱长线规划与运营</strong>？<em>骰子构筑</em>和<em>放置分配类</em>是绝佳选择。</span>
+                </li>
+                <li>
+                    <span class="bullet-emoji">⚔️</span>
+                    <span><strong>美式与战棋爱好者</strong>？战斗核心的骰子机制带来酣畅淋漓的对决。</span>
+                </li>
+                <li>
+                    <span class="bullet-emoji">🎉</span>
+                    <span><strong>追求轻松愉快的聚会氛围</strong>？体验<em>骰子书写类</em>或<em>共享蹭资源类</em>。</span>
+                </li>
+            </ul>
+            <p class="summary-closing">
+                这些丰富的机制让骰子游戏既保留了掷出奇迹的惊喜感，<br>更赋予了玩家<strong>掌控命运、布局谋略的深度</strong>——这正是它们最令人着迷的地方。🎲
+            </p>
+        </section>
+
+        <!-- ==================== 页脚 ==================== -->
+        <footer class="footer">
+            <p>整理自桌游骰子机制分析 &nbsp;|&nbsp; 愿每一次掷骰都有精彩故事 <span>🎲</span></p>
+        </footer>
+
+    </div>
+    <!-- /page-wrapper -->
+</body>
+</html>

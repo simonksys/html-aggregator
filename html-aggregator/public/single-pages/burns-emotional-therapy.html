@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>伯恩斯情绪疗法自助工作台</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --panel-2: #f1f5f9;
+      --border: #dbe3ea;
+      --text: #0f172a;
+      --muted: #475569;
+      --soft: #64748b;
+      --cyan: #0891b2;
+      --lime: #65a30d;
+      --rose: #e11d48;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --radius: 8px;
+      --shadow: 0 18px 42px rgba(15, 23, 42, .08);
+      --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(8, 145, 178, .10), transparent 28rem),
+        radial-gradient(circle at top right, rgba(217, 119, 6, .10), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 22px;
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 22px;
+      height: calc(100vh - 44px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: 28px;
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin-bottom: 8px;
+      font-size: 17px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 13px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: .18s ease;
+    }
+
+    .nav a:hover {
+      border-color: var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .nav span {
+      color: var(--soft);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .main {
+      display: grid;
+      gap: 22px;
+      min-width: 0;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+      gap: 18px;
+      min-height: 360px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, .94), rgba(241, 245, 249, .86)),
+        repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(15, 23, 42, .025) 9px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-copy {
+      align-self: center;
+      max-width: 780px;
+    }
+
+    .hero h1 {
+      font-size: 46px;
+    }
+
+    .hero p {
+      max-width: 72ch;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .stat {
+      min-height: 96px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .72);
+    }
+
+    .stat b {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 19px;
+    }
+
+    .hero-panel {
+      align-self: stretch;
+      display: grid;
+      align-content: center;
+      gap: 12px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .num {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: rgba(8, 145, 178, .10);
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    section {
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .9);
+      box-shadow: var(--shadow);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    .section-head p {
+      max-width: 72ch;
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      min-height: 30px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel-2);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      min-height: 150px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+      transition: border-color .18s ease, transform .18s ease, background .18s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(8, 145, 178, .38);
+      background: #f8fafc;
+      transform: translateY(-2px);
+    }
+
+    .card p:last-child,
+    .flow-step p:last-child,
+    .stat p:last-child {
+      margin-bottom: 0;
+    }
+
+    .distortion-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .distortion-btn {
+      min-height: 82px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: .18s ease;
+    }
+
+    .distortion-btn:hover,
+    .distortion-btn.active {
+      border-color: rgba(101, 163, 13, .38);
+      background: rgba(101, 163, 13, .08);
+      transform: translateY(-1px);
+    }
+
+    .distortion-btn strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .distortion-btn span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .detail {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid rgba(101, 163, 13, .30);
+      border-radius: var(--radius);
+      background: rgba(101, 163, 13, .07);
+    }
+
+    .detail p {
+      margin-bottom: 0;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--text);
+      outline: none;
+      padding: 11px 12px;
+    }
+
+    textarea {
+      min-height: 112px;
+      resize: vertical;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, .14);
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--cyan);
+      transform: translateY(-1px);
+    }
+
+    .btn.primary {
+      border-color: rgba(8, 145, 178, .36);
+      background: rgba(8, 145, 178, .10);
+    }
+
+    .side-note {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 9px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--muted);
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .method {
+      padding: 16px;
+      border-left: 3px solid var(--cyan);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .method:nth-child(2) { border-left-color: var(--lime); }
+    .method:nth-child(3) { border-left-color: var(--amber); }
+    .method:nth-child(4) { border-left-color: var(--rose); }
+
+    .result {
+      min-height: 170px;
+      white-space: pre-wrap;
+      padding: 14px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .footer {
+      color: var(--soft);
+      font-size: 13px;
+    }
+
+    .footer a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    @media (max-width: 1100px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+
+      .nav {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .hero,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .distortion-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        padding: 12px;
+      }
+
+      .hero,
+      section,
+      .sidebar {
+        padding: 16px;
+      }
+
+      .hero h1 {
+        font-size: 34px;
+      }
+
+      .stat-grid,
+      .grid,
+      .method-grid,
+      .form-grid,
+      .detail,
+      .nav {
+        grid-template-columns: 1fr;
+      }
+
+      .distortion-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .section-head {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <p class="eyebrow">Burns CBT Desk</p>
+        <h1>情绪自助工作台</h1>
+        <p class="muted small">用伯恩斯认知疗法的思路，看见自动想法，识别扭曲，再写出更平衡的回应。</p>
+      </div>
+      <nav class="nav" aria-label="页面导航">
+        <a href="#model">核心模型 <span>01</span></a>
+        <a href="#distortions">认知扭曲 <span>02</span></a>
+        <a href="#worklog">三栏练习 <span>03</span></a>
+        <a href="#questions">纠偏问题 <span>04</span></a>
+        <a href="#methods">回应方法 <span>05</span></a>
+        <a href="#sources">来源提示 <span>06</span></a>
+      </nav>
+      <p class="footer">适合日常自助记录；若出现自伤想法、强烈绝望或功能明显受损，请优先联系专业人士或当地紧急援助。</p>
+    </aside>
+
+    <main class="main">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">事件不直接制造情绪，中间隔着解释</p>
+          <h1>把脑内判决书，改写成可检验的想法。</h1>
+          <p>伯恩斯情绪疗法源自认知行为疗法传统。它的实用处在于：你不需要先“想开”，而是先把痛苦时的自动想法写下来，找出里面的认知扭曲，再用证据和更公平的语言重写它。</p>
+          <div class="stat-grid">
+            <div class="stat">
+              <b>1 个事件</b>
+              <p class="small muted">记录触发点，只写事实，少写解释。</p>
+            </div>
+            <div class="stat">
+              <b>1 组想法</b>
+              <p class="small muted">把脑中最刺痛的句子原样捕捉。</p>
+            </div>
+            <div class="stat">
+              <b>1 次复评</b>
+              <p class="small muted">写完理性回应后，再看情绪强度变化。</p>
+            </div>
+          </div>
+        </div>
+        <div class="hero-panel" aria-label="使用流程">
+          <div class="flow-step">
+            <span class="num">01</span>
+            <div>
+              <h3>慢下来</h3>
+              <p class="muted small">先命名情绪，不急着解决人生。</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="num">02</span>
+            <div>
+              <h3>抓句子</h3>
+              <p class="muted small">找出“我完了”“他肯定讨厌我”这类自动想法。</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="num">03</span>
+            <div>
+              <h3>做审稿</h3>
+              <p class="muted small">标记扭曲，改写成更准确、更有帮助的版本。</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section id="model">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">01 / Core Model</p>
+            <h2>核心模型：情绪来自你对事件的解释</h2>
+            <p>同一件事，不同解释会带来不同情绪。伯恩斯方法不是否定痛苦，而是把“事实”和“解释”分开，让你有机会检查解释是否过度、片面或不公平。</p>
+          </div>
+          <span class="pill">事件 → 想法 → 情绪 → 行为</span>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <h3>事件</h3>
+            <p class="muted">老板说“这个方案再改一下”。事实层面只有一句反馈。</p>
+          </article>
+          <article class="card">
+            <h3>自动想法</h3>
+            <p class="muted">“我不行”“他对我失望了”“这次肯定完了”。这些想法通常快、狠、像事实。</p>
+          </article>
+          <article class="card">
+            <h3>情绪与行为</h3>
+            <p class="muted">羞愧、焦虑、拖延、防御、反复检查。改变想法的质量，情绪常会松动。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="distortions">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 / Cognitive Distortions</p>
+            <h2>十类常见认知扭曲</h2>
+            <p>点击卡片查看解释和纠正提示。重点不是给自己贴标签，而是找到“这句话哪里不够准确”。</p>
+          </div>
+          <span class="pill">点击查看</span>
+        </div>
+        <div class="distortion-grid" id="distortionGrid"></div>
+        <div class="detail" id="distortionDetail" aria-live="polite"></div>
+      </section>
+
+      <section id="worklog">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">03 / Daily Mood Log</p>
+            <h2>三栏练习：把负面想法拉到桌面上</h2>
+            <p>填写后点击“生成整理版”，你会得到一段可复盘的文字。所有内容只留在当前浏览器页面，不会上传。</p>
+          </div>
+          <span class="pill">本地填写</span>
+        </div>
+        <div class="workspace">
+          <div>
+            <div class="form-grid">
+              <label class="wide">触发事件，只写可观察事实
+                <textarea id="eventInput" placeholder="例：今天会议上，我的方案被要求重做。"></textarea>
+              </label>
+              <label>主要情绪
+                <select id="emotionInput">
+                  <option>焦虑</option>
+                  <option>沮丧</option>
+                  <option>羞愧</option>
+                  <option>愤怒</option>
+                  <option>内疚</option>
+                  <option>孤独</option>
+                  <option>害怕</option>
+                </select>
+              </label>
+              <label>初始强度 0-100
+                <input id="beforeInput" type="number" min="0" max="100" value="75">
+              </label>
+              <label class="wide">自动想法，写最刺痛的一句
+                <textarea id="thoughtInput" placeholder="例：我能力太差了，大家会觉得我不值得信任。"></textarea>
+              </label>
+              <label>识别到的扭曲
+                <select id="distortionInput"></select>
+              </label>
+              <label>复评强度 0-100
+                <input id="afterInput" type="number" min="0" max="100" value="45">
+              </label>
+              <label class="wide">理性回应，更准确、更公平、更有帮助
+                <textarea id="responseInput" placeholder="例：方案需要重做不等于我没能力。它说明当前版本还没达到要求。我可以问清楚标准，拆成两步改。"></textarea>
+              </label>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="buildBtn" type="button">生成整理版</button>
+              <button class="btn" id="exampleBtn" type="button">填入示例</button>
+              <button class="btn" id="clearBtn" type="button">清空</button>
+            </div>
+          </div>
+          <aside class="side-note">
+            <div class="card">
+              <h3>整理版</h3>
+              <div class="result" id="resultBox">填写练习后，这里会生成一段复盘文字。</div>
+            </div>
+            <div class="card">
+              <h3>小原则</h3>
+              <p class="muted small">理性回应不是“正能量安慰”，而是经得起证据检查的平衡说法。它可以承认问题，同时拒绝夸大和自我攻击。</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="questions">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">04 / Self-Correction</p>
+            <h2>纠偏问题清单</h2>
+            <p>当你陷在情绪里，可以从这些问题里挑 2-3 个回答。目标是让大脑从“判决模式”回到“调查模式”。</p>
+          </div>
+          <span class="pill">挑几个答</span>
+        </div>
+        <ul class="checklist">
+          <li>我把事实和解释混在一起了吗？哪些句子是事实，哪些只是推测？</li>
+          <li>支持这个想法的证据是什么？反对它的证据是什么？</li>
+          <li>如果朋友遇到同样的事，我会用同样苛刻的话评价他吗？</li>
+          <li>我是不是把“一次表现”扩大成“整个人不行”？</li>
+          <li>最坏结果、最好结果、最可能结果分别是什么？</li>
+          <li>有没有一个既承认问题、又不攻击自己的说法？</li>
+          <li>这件事里，我能控制的下一小步是什么？</li>
+        </ul>
+      </section>
+
+      <section id="methods">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">05 / Reframe Methods</p>
+            <h2>四种常用回应写法</h2>
+            <p>如果你不知道怎样写理性回应，可以从下面四种模板里选一种。</p>
+          </div>
+          <span class="pill">不是鸡汤，是校准</span>
+        </div>
+        <div class="method-grid">
+          <article class="method">
+            <h3>证据法</h3>
+            <p class="muted">“支持它的证据是……反对它的证据是……更完整的结论是……”</p>
+          </article>
+          <article class="method">
+            <h3>双重标准法</h3>
+            <p class="muted">“如果朋友这样想，我会怎么更公平地回应他？”</p>
+          </article>
+          <article class="method">
+            <h3>去灾难化</h3>
+            <p class="muted">“最坏会怎样？我能承受或应对哪一部分？下一步是什么？”</p>
+          </article>
+          <article class="method">
+            <h3>具体化</h3>
+            <p class="muted">把“我很失败”改成“这次演示有两处没讲清，我可以先改第一页和结论”。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="sources">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">06 / Notes</p>
+            <h2>来源与使用边界</h2>
+            <p>本页根据 David D. Burns 关于认知扭曲和 Daily Mood Log 的公开资料整理，并参考认知行为疗法中“想法影响情绪和行为”的基础模型。</p>
+          </div>
+        </div>
+        <p class="footer">
+          可进一步阅读：
+          <a href="https://feelinggood.com/daily-mood-journal/" target="_blank" rel="noreferrer">Feeling Good: Daily Mood Journal</a>、
+          <a href="https://feelinggood.com/2014/01/06/secrets-of-self-esteem-2-negative-and-positive-distortions/" target="_blank" rel="noreferrer">Burns 对认知扭曲的说明</a>、
+          <a href="https://www.psychologytools.com/articles/unhelpful-thinking-styles-cognitive-distortions-in-cbt/" target="_blank" rel="noreferrer">Psychology Tools 对 CBT 认知扭曲的介绍</a>。
+          本页用于学习和自助记录，不能替代专业心理治疗或医学建议。
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const distortions = [
+      {
+        name: "全或无思维",
+        short: "不是满分就是失败",
+        explain: "把事情分成绝对的好/坏、成功/失败，看不到中间地带。",
+        fix: "改问：如果按 0-100 评分，这件事真实分数是多少？哪里只是没达到理想，而不是彻底失败？"
+      },
+      {
+        name: "过度概括",
+        short: "一次等于永远",
+        explain: "根据一次挫折推断以后都会如此，常见词是“总是”“永远”“从来”。",
+        fix: "改问：这真的是稳定规律，还是一次样本？有没有反例？"
+      },
+      {
+        name: "心理过滤",
+        short: "只盯坏点",
+        explain: "只抓住负面细节，忽略中性或积极信息。",
+        fix: "改问：如果把所有证据都放上桌，我漏掉了哪些信息？"
+      },
+      {
+        name: "否定正面",
+        short: "好事不算数",
+        explain: "把积极反馈解释成运气、客套或不重要。",
+        fix: "改问：如果负面证据算数，正面证据为什么不能算数？"
+      },
+      {
+        name: "妄下结论",
+        short: "读心或算命",
+        explain: "没有足够证据就断定别人怎么想，或预言坏结果一定发生。",
+        fix: "改问：我知道，还是我猜的？还需要什么信息才能下结论？"
+      },
+      {
+        name: "放大与缩小",
+        short: "坏处放大，好处缩小",
+        explain: "夸大错误和风险，缩小能力、资源和进展。",
+        fix: "改问：如果用镜头还原真实比例，这件事应该占多大？"
+      },
+      {
+        name: "情绪化推理",
+        short: "我感觉，所以是真的",
+        explain: "因为感觉强烈，就把感觉当作事实。",
+        fix: "改问：这种感觉说明我在乎什么，但它能证明事实吗？"
+      },
+      {
+        name: "应该句式",
+        short: "必须、应该、不得不",
+        explain: "用僵硬规则逼迫自己或别人，容易制造内疚、愤怒和压力。",
+        fix: "改问：我真正的价值或偏好是什么？能否改成“我希望/我选择/我可以”？"
+      },
+      {
+        name: "贴标签",
+        short: "把行为等同于人",
+        explain: "用一个负面词定义整个人，例如“废物”“失败者”。",
+        fix: "改问：具体行为是什么？这个行为能否改进，而不是定义我是谁？"
+      },
+      {
+        name: "个人化",
+        short: "都怪我",
+        explain: "把并不完全由自己造成的结果全部归咎于自己。",
+        fix: "改问：还有哪些因素参与了结果？我真实负责的比例是多少？"
+      }
+    ];
+
+    const grid = document.querySelector("#distortionGrid");
+    const detail = document.querySelector("#distortionDetail");
+    const distortionInput = document.querySelector("#distortionInput");
+
+    distortions.forEach((item, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "distortion-btn";
+      button.innerHTML = `<strong>${item.name}</strong><span>${item.short}</span>`;
+      button.addEventListener("click", () => showDistortion(index));
+      grid.appendChild(button);
+
+      const option = document.createElement("option");
+      option.textContent = item.name;
+      distortionInput.appendChild(option);
+    });
+
+    function showDistortion(index) {
+      const item = distortions[index];
+      document.querySelectorAll(".distortion-btn").forEach((button, btnIndex) => {
+        button.classList.toggle("active", btnIndex === index);
+      });
+      detail.innerHTML = `
+        <div>
+          <h3>${item.name}</h3>
+          <p class="muted">${item.explain}</p>
+        </div>
+        <div>
+          <h3>纠正提示</h3>
+          <p class="muted">${item.fix}</p>
+        </div>
+      `;
+      distortionInput.value = item.name;
+    }
+
+    showDistortion(0);
+
+    const ids = ["eventInput", "emotionInput", "beforeInput", "thoughtInput", "distortionInput", "afterInput", "responseInput"];
+    const fields = Object.fromEntries(ids.map(id => [id, document.querySelector(`#${id}`)]));
+    const resultBox = document.querySelector("#resultBox");
+
+    document.querySelector("#buildBtn").addEventListener("click", () => {
+      const before = Number(fields.beforeInput.value || 0);
+      const after = Number(fields.afterInput.value || 0);
+      const delta = before - after;
+      resultBox.textContent =
+`事件：
+${fields.eventInput.value || "未填写"}
+
+情绪：
+${fields.emotionInput.value}，从 ${before}/100 复评为 ${after}/100（变化 ${delta >= 0 ? "-" + delta : "+" + Math.abs(delta)}）。
+
+自动想法：
+${fields.thoughtInput.value || "未填写"}
+
+识别到的认知扭曲：
+${fields.distortionInput.value}
+
+理性回应：
+${fields.responseInput.value || "未填写"}
+
+下一小步：
+把理性回应压缩成一句今天能执行的话。`;
+    });
+
+    document.querySelector("#exampleBtn").addEventListener("click", () => {
+      fields.eventInput.value = "今天会议上，我的方案被要求重做。";
+      fields.emotionInput.value = "羞愧";
+      fields.beforeInput.value = 82;
+      fields.thoughtInput.value = "我能力太差了，大家会觉得我不值得信任。";
+      fields.distortionInput.value = "贴标签";
+      fields.afterInput.value = 46;
+      fields.responseInput.value = "方案需要重做不等于我没能力。它说明当前版本还没达到要求。我可以问清楚标准，把问题拆成结构、数据和表达三部分逐项修改。";
+      document.querySelector("#buildBtn").click();
+    });
+
+    document.querySelector("#clearBtn").addEventListener("click", () => {
+      ["eventInput", "thoughtInput", "responseInput"].forEach(id => fields[id].value = "");
+      fields.beforeInput.value = 75;
+      fields.afterInput.value = 45;
+      resultBox.textContent = "填写练习后，这里会生成一段复盘文字。";
+    });
+  </script>
+</body>
+</html>

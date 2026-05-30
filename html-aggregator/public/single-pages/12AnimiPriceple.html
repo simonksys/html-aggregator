@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动画 12 原则互动课件</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --sidebar-bg: #1e1e1e;
+            --card-bg: #252525;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent-physics: #ff6b6b; /* 红色系：物理 */
+            --accent-acting: #4ecdc4;  /* 青色系：表演 */
+            --accent-design: #feca57;  /* 黄色系：设计 */
+            --border-color: #333;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- 侧边导航栏 --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar h1 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #fff;
+            border-bottom: 2px solid #fff;
+            padding-bottom: 10px;
+        }
+
+        .nav-group { margin-bottom: 20px; }
+        .nav-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .nav-link {
+            display: block;
+            text-decoration: none;
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .nav-link:hover { background-color: #333; }
+        .nav-link.physics { border-left: 3px solid var(--accent-physics); }
+        .nav-link.acting { border-left: 3px solid var(--accent-acting); }
+        .nav-link.design { border-left: 3px solid var(--accent-design); }
+
+        /* --- 主内容区 --- */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .intro-section {
+            max-width: 800px;
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #121212;
+            font-weight: bold;
+        }
+        .badge-physics { background-color: var(--accent-physics); }
+        .badge-acting { background-color: var(--accent-acting); }
+        .badge-design { background-color: var(--accent-design); }
+
+        /* --- 原则卡片布局 --- */
+        .principle-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 60px;
+            border: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .visual-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .visual-area svg {
+            width: 100%;
+            height: 220px;
+            background: #333;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .text-area h2 { margin-top: 0; color: #fff; font-size: 1.8rem; }
+        .text-area h3 { color: var(--text-muted); font-size: 1rem; margin-top: 20px; text-transform: uppercase; letter-spacing: 0.5px;}
+        
+        .concept-text { line-height: 1.6; color: #ddd; }
+        .ui-text { color: #aaa; font-style: italic; border-left: 3px solid #555; padding-left: 15px; margin-top: 10px;}
+
+        /* --- 响应式 --- */
+        @media (max-width: 900px) {
+            body { flex-direction: column; height: auto; overflow: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #333; }
+            .principle-card { grid-template-columns: 1fr; }
+            .main-content { overflow: visible; }
+        }
+
+        /* =========================================
+           SVG 动画关键帧定义 (整合版)
+           ========================================= */
+        
+        /* 1. Squash & Stretch */
+        .ball-squash { fill: var(--accent-physics); transform-origin: center bottom; animation: bounce 1.2s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1.1, 0.9); animation-timing-function: ease-out; }
+            5% { transform: translateY(0) scale(1, 1); }
+            50% { transform: translateY(-150px) scale(0.9, 1.1); animation-timing-function: ease-in; }
+            95% { transform: translateY(0) scale(1, 1); }
+        }
+
+        /* 2. Anticipation */
+        .box-anticipation { fill: var(--accent-acting); animation: dash 2s infinite; }
+        @keyframes dash {
+            0% { transform: translateX(50px); }
+            20% { transform: translateX(20px); animation-timing-function: cubic-bezier(0.5, 0, 1, 1); }
+            30% { transform: translateX(20px) skewX(-10deg); }
+            40% { transform: translateX(220px) skewX(20deg); }
+            60% { transform: translateX(200px); }
+            100% { transform: translateX(200px); }
+        }
+
+        /* 3. Staging */
+        .stage-bg { fill: #444; opacity: 0.3; }
+        .stage-actor { fill: var(--accent-acting); animation: stageFocus 3s infinite; }
+        @keyframes stageFocus {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.2); filter: brightness(1.3) drop-shadow(0 0 10px var(--accent-acting)); }
+        }
+
+        /* 4. Straight Ahead vs Pose */
+        .p2p-ball { fill: #54a0ff; animation: slideSmooth 2s infinite alternate ease-in-out; }
+        .sa-ball { fill: var(--accent-design); animation: slideStep 2s infinite alternate steps(5); }
+        @keyframes slideSmooth { from { cx: 30; } to { cx: 270; } }
+        @keyframes slideStep { from { cx: 30; } to { cx: 270; } }
+
+        /* 5. Follow Through */
+        .pendulum-base { fill: var(--accent-physics); transform-origin: 150px 20px; animation: swingBase 2s ease-in-out infinite alternate; }
+        .pendulum-tail { fill: #ff9ff3; width: 10px; height: 60px; x: 145; y: 60; transform-origin: 150px 60px; animation: swingTail 2s ease-in-out infinite alternate -0.3s; }
+        @keyframes swingBase { from { transform: rotate(-25deg); } to { transform: rotate(25deg); } }
+        @keyframes swingTail { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+
+        /* 6. Slow In Slow Out */
+        .anim-linear { animation: moveSide 2s linear infinite alternate; fill: #555;}
+        .anim-ease { animation: moveSide 2s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate; fill: var(--accent-physics); }
+        @keyframes moveSide { from { cx: 30; } to { cx: 270; } }
+
+        /* 7. Arcs */
+        .ball-arc { fill: var(--accent-physics); animation: throwArc 1.5s infinite linear; }
+        @keyframes throwArc {
+            0% { transform: translate(20px, 180px); animation-timing-function: linear; }
+            50% { transform: translate(150px, 20px); animation-timing-function: ease-in; }
+            100% { transform: translate(280px, 180px); }
+        }
+
+        /* 8. Secondary Action */
+        .main-box { fill: var(--accent-acting); animation: boxWalk 2s infinite linear; }
+        .secondary-antenna { stroke: var(--accent-acting); stroke-width: 4; stroke-linecap: round; transform-origin: 150px 100px; animation: antennaWiggle 0.5s infinite alternate ease-in-out; }
+        @keyframes boxWalk {
+            0% { transform: translateY(0); } 25% { transform: translateY(-10px) rotate(5deg); } 50% { transform: translateY(0); } 75% { transform: translateY(-10px) rotate(-5deg); } 100% { transform: translateY(0); }
+        }
+        @keyframes antennaWiggle { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+
+        /* 9. Timing */
+        .timing-fast { animation: moveX 1s infinite alternate ease-in-out; fill: #feca57; }
+        .timing-slow { animation: moveX 3s infinite alternate ease-in-out; fill: #5f27cd; }
+        @keyframes moveX { from { cx: 40; } to { cx: 260; } }
+
+        /* 10. Exaggeration */
+        .face-normal { fill: #c8d6e5; animation: shock 3s infinite; transform-origin: center; }
+        @keyframes shock {
+            0%, 80% { transform: scale(1); fill: #c8d6e5; }
+            85% { transform: scale(0.5); }
+            90% { transform: scale(1.5); fill: var(--accent-design); }
+            92% { transform: translate(-5px, 0) scale(1.5); }
+            94% { transform: translate(5px, 0) scale(1.5); }
+            100% { transform: scale(1); fill: #c8d6e5; }
+        }
+
+        /* 11. Solid Drawing */
+        .cube-group { animation: fake3D 3s infinite linear; transform-origin: 150px 90px; fill: var(--accent-design); rx: 10; }
+        .cube-eyes { fill: #fff; animation: featuresMove 3s infinite linear;}
+        @keyframes fake3D {
+            0% { transform: translateX(0); } 25% { transform: translateX(30px) scaleX(0.9); } 50% { transform: translateX(0); } 75% { transform: translateX(-30px) scaleX(0.9); } 100% { transform: translateX(0); }
+        }
+        @keyframes featuresMove {
+            0% { transform: translateX(0); } 25% { transform: translateX(45px); } 50% { transform: translateX(0); } 75% { transform: translateX(-45px); } 100% { transform: translateX(0); }
+        }
+
+        /* 12. Appeal */
+        .boring-box { fill: #555; }
+        .appealing-blob { fill: url(#grad1); animation: blobFloat 2s infinite ease-in-out alternate; }
+        @keyframes blobFloat {
+            from { transform: translateY(5px); d: path("M160,80 Q220,80 220,120 Q220,160 160,160 Q100,160 100,120 Q100,80 160,80"); }
+            to { transform: translateY(-15px); d: path("M160,70 Q230,90 220,120 Q210,150 160,160 Q110,150 100,120 Q90,90 160,70"); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏导航 -->
+    <nav class="sidebar">
+        <h1>动画 12 原则</h1>
+        
+        <div class="nav-group">
+            <div class="nav-title">一、物理规律</div>
+            <a href="#p1" class="nav-link physics">1. 挤压与伸展</a>
+            <a href="#p2" class="nav-link physics">2. 缓入缓出</a>
+            <a href="#p3" class="nav-link physics">3. 弧形运动</a>
+            <a href="#p4" class="nav-link physics">4. 跟随与重叠</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-title">二、动作表演</div>
+            <a href="#p5" class="nav-link acting">5. 预备动作</a>
+            <a href="#p6" class="nav-link acting">6. 舞台表现</a>
+            <a href="#p7" class="nav-link acting">7. 时间节奏</a>
+            <a href="#p8" class="nav-link acting">8. 次要动作</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-title">三、美术设计</div>
+            <a href="#p9" class="nav-link design">9. 逐帧与关键帧</a>
+            <a href="#p10" class="nav-link design">10. 夸张</a>
+            <a href="#p11" class="nav-link design">11. 扎实描绘</a>
+            <a href="#p12" class="nav-link design">12. 吸引力</a>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        
+        <div class="intro-section">
+            <h1 style="color: #fff; font-size: 2.5rem; margin-bottom: 20px;">The 12 Principles of Animation</h1>
+            <p style="color: #aaa; font-size: 1.1rem; line-height: 1.6;">
+                这些原则源自迪士尼经典著作《生命的幻象》(The Illusion of Life)，是赋予动态图形生命力的核心法则。
+                本课件通过 SVG 和 CSS 动画技术，为您直观演示每一条原则的物理逻辑与 Web UI 应用场景。
+            </p>
+        </div>
+
+        <!-- ================= Category 1: 物理规律 ================= -->
+        
+        <div class="section-title" style="color: var(--accent-physics);">
+            一、物理规律 (Physics)
+        </div>
+
+        <!-- 1. Squash and Stretch -->
+        <div id="p1" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <rect x="0" y="190" width="300" height="10" fill="#555"/>
+                    <circle class="ball-squash" cx="150" cy="190" r="25" />
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-physics">01</span> 挤压与伸展 (Squash & Stretch)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">物体不是刚体，在受力（加速或撞击）时会发生形变。必须保持**体积恒定**：压扁时必须变宽，拉长时必须变细。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">点击按钮时，按钮微微缩小（挤压），松开时回弹；给用户一种“实体触感”而非冰冷的像素。</p>
+            </div>
+        </div>
+
+        <!-- 2. Slow In and Slow Out -->
+        <div id="p2" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <text x="150" y="60" text-anchor="middle" fill="#777" font-size="12">Linear (机械)</text>
+                    <circle class="anim-linear" cy="80" r="15" />
+                    <text x="150" y="140" text-anchor="middle" fill="#ccc" font-size="12">Ease (自然)</text>
+                    <circle class="anim-ease" cy="160" r="15" />
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-physics">02</span> 缓入缓出 (Slow In & Slow Out)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">自然界物体受惯性和摩擦力影响，不会瞬间达到最高速或瞬间静止。起步加速，停止减速。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">几乎所有 UI 动画的标准：弹窗出现用 Ease-out，列表滚动用 Decay。纯线性运动 (Linear) 在界面中会显得非常廉价。</p>
+            </div>
+        </div>
+
+        <!-- 3. Arcs -->
+        <div id="p3" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <path d="M20,180 Q150,-140 280,180" stroke="#444" fill="none" stroke-dasharray="4"/>
+                    <circle class="ball-arc" cx="0" cy="0" r="15" />
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-physics">03</span> 弧形运动 (Arcs)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">除了机械活塞，自然界生物的动作（如挥手、抛物）轨迹都是弧线。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">“加入购物车”的动效，商品图标飞入购物车的路径如果是直线的会很生硬，带一点弧度会更自然流畅。</p>
+            </div>
+        </div>
+
+        <!-- 4. Follow Through -->
+        <div id="p4" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <g class="pendulum-base">
+                        <rect x="130" y="20" width="40" height="40" rx="4" />
+                        <g class="pendulum-tail">
+                            <rect width="10" height="60" x="145" y="60" rx="5"/>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-physics">04</span> 跟随与重叠 (Follow Through)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">主体停下后，附属物（如尾巴、头发）因惯性继续运动。动作不是同时发生，而是有相位差。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">下拉刷新停止后，图标的惯性摆动；或者加载卡片列表时，卡片不是同时出现，而是依次错开 (Stagger) 出现。</p>
+            </div>
+        </div>
+
+        <!-- ================= Category 2: 动作表演 ================= -->
+
+        <div class="section-title" style="color: var(--accent-acting); margin-top: 80px;">
+            二、动作表演 (Acting)
+        </div>
+
+        <!-- 5. Anticipation -->
+        <div id="p5" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <rect class="box-anticipation" x="0" y="80" width="40" height="40" rx="4" />
+                    <line x1="20" y1="130" x2="280" y2="130" stroke="#444" stroke-dasharray="5"/>
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-acting">05</span> 预备动作 (Anticipation)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">在主动作发生前，向反方向做一个小动作。目的是积蓄能量，并**提示观众**“我要动了”。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">删除项目前，项目微微发红或抖动；悬停按钮时按钮轻微后缩，预示可点击。</p>
+            </div>
+        </div>
+
+        <!-- 6. Staging -->
+        <div id="p6" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <circle class="stage-bg" cx="50" cy="50" r="20"/>
+                    <circle class="stage-bg" cx="250" cy="140" r="20"/>
+                    <circle class="stage-bg" cx="80" cy="150" r="15"/>
+                    <circle class="stage-actor" cx="150" cy="90" r="30" />
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-acting">06</span> 舞台表现 (Staging)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">引导观众视线。通过对比（明暗、动静、大小）突出主体，一次只表达一个重点。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">模态弹窗 (Modal) 出现时背景变黑（遮罩），强迫用户聚焦弹窗内容，这就是 Staging。</p>
+            </div>
+        </div>
+
+        <!-- 7. Timing -->
+        <div id="p7" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <text x="150" y="40" fill="#aaa" text-anchor="middle" font-size="12">Light (Fast)</text>
+                    <circle class="timing-fast" cy="60" r="15"/>
+                    <text x="150" y="120" fill="#aaa" text-anchor="middle" font-size="12">Heavy (Slow)</text>
+                    <circle class="timing-slow" cy="140" r="20"/>
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-acting">07</span> 时间节奏 (Timing)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">动作持续的时间。时间决定了**重量**（快=轻，慢=重）和**情绪**（慢=悲伤/谨慎，快=活力）。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">报错提示应快速出现（警示），而成功提示可以稍慢（愉悦）。不同操作反馈的快慢直接影响产品的“手感”。</p>
+            </div>
+        </div>
+
+        <!-- 8. Secondary Action -->
+        <div id="p8" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <g transform="translate(0, 20)">
+                        <g class="main-box">
+                            <rect x="120" y="100" width="60" height="60" rx="8" fill="#10ac84"/>
+                            <line class="secondary-antenna" x1="150" y1="100" x2="150" y2="70" />
+                            <circle cx="150" cy="70" r="5" fill="#10ac84" class="secondary-antenna"/>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-acting">08</span> 次要动作 (Secondary Action)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">丰富主动作的细节（如走路时摆手）。次要动作不能抢戏，只能衬托。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">上传文件时，进度条增长是主动作，进度条上的光效闪烁是次要动作，暗示系统正在忙碌。</p>
+            </div>
+        </div>
+
+        <!-- ================= Category 3: 美术设计 ================= -->
+
+        <div class="section-title" style="color: var(--accent-design); margin-top: 80px;">
+            三、美术设计 (Design)
+        </div>
+
+        <!-- 9. Straight Ahead & Pose to Pose -->
+        <div id="p9" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <text x="150" y="40" fill="#aaa" text-anchor="middle" font-size="12">Pose to Pose (CSS Default)</text>
+                    <circle class="p2p-ball" cy="60" r="15"/>
+                    <text x="150" y="120" fill="#aaa" text-anchor="middle" font-size="12">Straight Ahead (Steps)</text>
+                    <circle class="sa-ball" cy="140" r="15"/>
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-design">09</span> 逐帧与关键帧</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">Pose to Pose（关键帧）结构严谨，由电脑补间（大多数 Web 动画）。Straight Ahead（逐帧）狂野、随机，具有手绘质感。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">常规交互使用关键帧（CSS Transition）。点赞爆炸、礼花特效通常使用逐帧图（Sprite Sheet）或 Lottie 来表现那种不可预测的动态。</p>
+            </div>
+        </div>
+
+        <!-- 10. Exaggeration -->
+        <div id="p10" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <g transform="translate(150, 90)">
+                        <circle class="face-normal" r="30" />
+                        <circle cx="-10" cy="-5" r="3" fill="#333"/>
+                        <circle cx="10" cy="-5" r="3" fill="#333"/>
+                        <path d="M-10,10 Q0,20 10,10" fill="none" stroke="#333" stroke-width="2" class="face-normal"/>
+                    </g>
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-design">10</span> 夸张 (Exaggeration)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">基于现实但超越现实。通过大幅度的变形、震动来强化情绪和冲击力。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">输入密码错误时，输入框左右摇晃的幅度通常比物理摇晃要剧烈，目的是明确地告知用户“出错了”。</p>
+            </div>
+        </div>
+
+        <!-- 11. Solid Drawing -->
+        <div id="p11" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <g transform="translate(0, 0)">
+                        <rect class="cube-group" x="100" y="40" width="100" height="100" />
+                        <g>
+                            <circle cx="130" cy="80" r="8" class="cube-eyes"/>
+                            <circle cx="170" cy="80" r="8" class="cube-eyes"/>
+                            <rect x="130" y="100" width="40" height="5" fill="#1e3799" rx="2" class="cube-eyes"/>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-design">11</span> 扎实的描绘 (Solid Drawing)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">在 2D 平面表现 3D 体积感。避免“纸片人”。利用透视、光影和视差 (Parallax)。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">Material Design 的阴影层级（Elevation）；或者像演示中那样，利用面部五官移动距离的不同（视差）来模拟头部转动。</p>
+            </div>
+        </div>
+
+        <!-- 12. Appeal -->
+        <div id="p12" class="principle-card">
+            <div class="visual-area">
+                <svg viewBox="0 0 300 220">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff9a9e;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fad0c4;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect class="boring-box" x="30" y="80" width="60" height="60" />
+                    <path class="appealing-blob" d="M160,80 Q220,80 220,120 Q220,160 160,160 Q100,160 100,120 Q100,80 160,80" />
+                </svg>
+            </div>
+            <div class="text-area">
+                <h2><span class="badge badge-design">12</span> 吸引力 (Appeal)</h2>
+                <h3>核心概念</h3>
+                <p class="concept-text">好的设计让人赏心悦目。通过形状（圆形优于方形）、色彩和动态赋予角色或界面“魅力”。</p>
+                <h3>UI 应用</h3>
+                <p class="ui-text">Micro-interactions（微交互）。比如 Twitter 点赞时的红心动画，或者加载时的可爱动画。好的 UX 应该让人感到愉悦。</p>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

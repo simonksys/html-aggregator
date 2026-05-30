@@ -1,0 +1,2326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity 设计模式全鉴</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0f1e;
+            --bg-card: #111827;
+            --bg-card-hover: #162032;
+            --bg-surface: #0f1629;
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.15);
+            --warm: #f59e0b;
+            --sky: #38bdf8;
+            --rose: #f43f5e;
+            --text: #e2e8f0;
+            --text-muted: #8892a8;
+            --border: #1e293b;
+            --border-light: #2d3a52;
+            --code-bg: #0d1117;
+            --kw: #7ee787;
+            --type: #79c0ff;
+            --str: #ffa657;
+            --cmt: #6e7681;
+            --num: #d2a8ff;
+            --unity: #ff7b72;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* 粒子画布 */
+        #particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 导航栏 */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 100;
+            background: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        .nav-logo .logo-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--accent), #059669);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .search-box {
+            position: relative;
+            width: 320px;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 16px 8px 40px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent);
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .search-box input::placeholder { color: var(--text-muted); }
+
+        .search-box i {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .nav-stats {
+            display: flex;
+            gap: 24px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .nav-stats span strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* Hero */
+        #hero {
+            position: relative;
+            z-index: 1;
+            padding: 120px 2rem 60px;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 999px;
+            padding: 6px 18px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-bottom: 24px;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        .hero-badge .dot {
+            width: 6px; height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            animation: fadeInDown 0.6s ease 0.1s both;
+        }
+
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--accent), #34d399, var(--warm));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 680px;
+            margin: 0 auto 40px;
+            animation: fadeInDown 0.6s ease 0.2s both;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat .num {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+            line-height: 1;
+        }
+
+        .hero-stat .label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .hero-stat:nth-child(2) .num { color: var(--warm); }
+        .hero-stat:nth-child(3) .num { color: var(--sky); }
+
+        /* 过滤标签 */
+        #filters {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 0 2rem 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 20px;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--border-light);
+            background: rgba(255,255,255,0.07);
+            color: var(--text);
+        }
+
+        .filter-btn.active {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        .filter-btn .count {
+            background: rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+        }
+
+        .filter-btn.active .count {
+            background: rgba(16,185,129,0.2);
+        }
+
+        /* 模式卡片网格 */
+        #grid {
+            position: relative;
+            z-index: 1;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 2rem 80px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .pattern-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pattern-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--card-accent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .pattern-card:hover {
+            border-color: var(--border-light);
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        }
+
+        .pattern-card:hover::before { opacity: 1; }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .card-category {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .cat-creational { background: rgba(16,185,129,0.12); color: var(--accent); }
+        .cat-structural { background: rgba(245,158,11,0.12); color: var(--warm); }
+        .cat-behavioral { background: rgba(56,189,248,0.12); color: var(--sky); }
+
+        .card-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .card-name-en {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .card-def {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .card-tag {
+            font-size: 0.72rem;
+            padding: 3px 10px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 6px;
+            color: var(--text-muted);
+        }
+
+        .card-key {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .card-key i { color: var(--accent); }
+
+        .card-key span { color: var(--text); font-weight: 500; }
+
+        /* 空状态 */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        /* 详情模态框 */
+        #modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(5, 8, 18, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        #modal {
+            position: fixed;
+            top: 0; right: 0;
+            width: min(720px, 92vw);
+            height: 100vh;
+            background: var(--bg-surface);
+            border-left: 1px solid var(--border);
+            z-index: 201;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0;
+        }
+
+        #modal.show { transform: translateX(0); }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 22, 41, 0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 24px 32px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .modal-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .modal-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .modal-name-en {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .modal-close {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(244,63,94,0.1);
+            border-color: var(--rose);
+            color: var(--rose);
+        }
+
+        .modal-body {
+            padding: 32px;
+        }
+
+        .modal-section {
+            margin-bottom: 32px;
+        }
+
+        .modal-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .modal-section-title i { color: var(--accent); }
+
+        .modal-def {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--text);
+            padding: 16px 20px;
+            background: rgba(16,185,129,0.06);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .modal-key-idea {
+            font-size: 1rem;
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        .modal-key-idea strong { color: var(--accent); }
+
+        /* 参与者角色 */
+        .participant-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .participant-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .participant-item .role-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .participant-item .role-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 100px;
+        }
+
+        .participant-item .role-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Unity场景 */
+        .scene-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .scene-card i {
+            color: var(--warm);
+            font-size: 1.3rem;
+            margin-top: 2px;
+        }
+
+        .scene-card p {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: var(--text);
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-dots {
+            display: flex; gap: 6px;
+        }
+
+        .code-dots span {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+        }
+
+        .code-dots span:nth-child(1) { background: #f43f5e; }
+        .code-dots span:nth-child(2) { background: #f59e0b; }
+        .code-dots span:nth-child(3) { background: #10b981; }
+
+        .code-lang {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .code-copy {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .code-copy:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .code-copy.copied {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .code-content {
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.65;
+            tab-size: 4;
+        }
+
+        .code-content .kw { color: var(--kw); }
+        .code-content .type { color: var(--type); }
+        .code-content .str { color: var(--str); }
+        .code-content .cmt { color: var(--cmt); font-style: italic; }
+        .code-content .num { color: var(--num); }
+        .code-content .unity { color: var(--unity); }
+        .code-content .fn { color: #d2a8ff; }
+
+        /* 优缺点 */
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .pros-list, .cons-list {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .pros-list {
+            background: rgba(16,185,129,0.04);
+        }
+
+        .cons-list {
+            background: rgba(244,63,94,0.04);
+        }
+
+        .pros-list h4 {
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cons-list h4 {
+            font-size: 0.85rem;
+            color: var(--rose);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pros-list li, .cons-list li {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            list-style: none;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .pros-list li::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 9px;
+            width: 6px; height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .cons-list li::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 9px;
+            width: 6px; height: 6px;
+            background: var(--rose);
+            border-radius: 50%;
+        }
+
+        /* 相关模式 */
+        .related-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .related-tag {
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .related-tag:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 40px 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* 动画 */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .card-enter {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-enter.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            padding: 12px 24px;
+            color: var(--accent);
+            font-size: 0.9rem;
+            z-index: 999;
+            transition: transform 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            nav { padding: 0 1rem; }
+            .nav-stats { display: none; }
+            .search-box { width: 180px; }
+            #hero { padding: 100px 1rem 40px; }
+            .hero-stats { gap: 24px; }
+            .hero-stat .num { font-size: 1.8rem; }
+            #grid { padding: 0 1rem 60px; grid-template-columns: 1fr; }
+            #modal { width: 100vw; }
+            .modal-body { padding: 20px; }
+            .pros-cons { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <canvas id="particles"></canvas>
+
+    <!-- 导航栏 -->
+    <nav>
+        <div class="nav-logo">
+            <div class="logo-icon"><i class="fas fa-cubes"></i></div>
+            <span>Unity Patterns</span>
+        </div>
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="搜索设计模式..." aria-label="搜索设计模式">
+        </div>
+        <div class="nav-stats">
+            <span><strong>12</strong> 个模式</span>
+            <span><strong>3</strong> 种分类</span>
+            <span><strong>C#</strong> 代码示例</span>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section id="hero">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            Unity 游戏开发必备知识
+        </div>
+        <h1 class="hero-title">掌握 <span class="highlight">设计模式</span><br>构建更优雅的游戏架构</h1>
+        <p class="hero-desc">深入理解 Unity 开发中最常用的 12 种设计模式，每个模式都配有真实场景说明和可运行的 C# 代码示例，助你写出可维护、可扩展的游戏代码。</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="num" id="statPatterns">0</span>
+                <div class="label">设计模式</div>
+            </div>
+            <div class="hero-stat">
+                <span class="num" id="statCategories">0</span>
+                <div class="label">分类体系</div>
+            </div>
+            <div class="hero-stat">
+                <span class="num" id="statLines">0</span>
+                <div class="label">行代码示例</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 过滤标签 -->
+    <section id="filters">
+        <button class="filter-btn active" data-cat="all">
+            <i class="fas fa-border-all"></i> 全部 <span class="count">12</span>
+        </button>
+        <button class="filter-btn" data-cat="creational">
+            <i class="fas fa-hammer"></i> 创建型 <span class="count">4</span>
+        </button>
+        <button class="filter-btn" data-cat="structural">
+            <i class="fas fa-puzzle-piece"></i> 结构型 <span class="count">3</span>
+        </button>
+        <button class="filter-btn" data-cat="behavioral">
+            <i class="fas fa-exchange-alt"></i> 行为型 <span class="count">5</span>
+        </button>
+    </section>
+
+    <!-- 卡片网格 -->
+    <section id="grid"></section>
+
+    <!-- 模态框遮罩 -->
+    <div id="modal-overlay"></div>
+
+    <!-- 详情面板 -->
+    <div id="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+            <div class="modal-title-area">
+                <div class="modal-icon" id="modalIcon"></div>
+                <div>
+                    <div class="modal-name" id="modalName"></div>
+                    <div class="modal-name-en" id="modalNameEn"></div>
+                </div>
+            </div>
+            <button class="modal-close" id="modalClose" aria-label="关闭"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Unity 设计模式全鉴 — 用更优雅的方式构建游戏世界</p>
+    </footer>
+
+    <script>
+    // ==================== 数据定义 ====================
+    const patterns = [
+        {
+            id: 'singleton',
+            name: '单例模式',
+            nameEn: 'Singleton',
+            category: 'creational',
+            icon: 'fa-cube',
+            color: '#10b981',
+            definition: '确保一个类只有一个实例，并提供全局访问点。在 Unity 中常用于管理全局状态的 GameManager、AudioManager 等。',
+            keyIdea: '将构造函数设为私有，通过静态属性暴露唯一实例。Unity 中需处理跨场景生命周期（DontDestroyOnLoad）和重复实例销毁。',
+            participants: [
+                { name: 'Singleton', desc: '包含私有构造函数和静态实例引用的类', color: '#10b981' },
+                { name: 'Client', desc: '通过 Singleton.Instance 访问唯一实例', color: '#38bdf8' }
+            ],
+            unityScene: 'GameManager 管理全局游戏状态与流程；AudioManager 统一管理音效播放与停止；UIManager 控制界面切换；SceneManager 处理场景加载。这些管理器需要在整个游戏生命周期中存在，且只能有一个实例。',
+            code: `public class GameManager : MonoBehaviour
+{
+    // 静态实例，全局访问点
+    public static GameManager Instance { get; private set; }
+
+    public int Score { get; private set; }
+
+    void Awake()
+    {
+        // 如果已存在实例且不是自己，销毁重复对象
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        // 跨场景不销毁
+        DontDestroyOnLoad(gameObject);
+    }
+
+    public void AddScore(int points)
+    {
+        Score += points;
+        Debug.Log($"当前分数: {Score}");
+    }
+
+    public void ResetGame()
+    {
+        Score = 0;
+        Debug.Log("游戏已重置");
+    }
+}`,
+            pros: ['提供全局唯一访问点，使用方便', '延迟初始化，按需创建', '避免重复创建造成的资源浪费'],
+            cons: ['违反单一职责原则，容易变成"上帝类"', '隐藏依赖关系，降低可测试性', '多线程环境需额外处理并发问题'],
+            related: ['对象池模式', '观察者模式', '状态模式']
+        },
+        {
+            id: 'factory',
+            name: '工厂方法模式',
+            nameEn: 'Factory Method',
+            category: 'creational',
+            icon: 'fa-industry',
+            color: '#10b981',
+            definition: '定义创建对象的接口，让子类决定实例化哪个类。将对象创建逻辑与使用逻辑分离，便于扩展新的产品类型。',
+            keyIdea: '将 <strong>new</strong> 操作封装在工厂方法中，客户端只依赖抽象接口，不依赖具体类。新增类型时只需添加新工厂，无需修改已有代码。',
+            participants: [
+                { name: 'IProduct', desc: '产品接口，定义产品的公共行为', color: '#10b981' },
+                { name: 'ConcreteProduct', desc: '具体产品，实现 IProduct 接口', color: '#f59e0b' },
+                { name: 'Factory', desc: '工厂基类，声明创建方法', color: '#38bdf8' },
+                { name: 'ConcreteFactory', desc: '具体工厂，实现创建逻辑', color: '#f43f5e' }
+            ],
+            unityScene: '敌人生成系统：ZombieFactory、SkeletonFactory、BossFactory 各自创建不同类型的敌人。道具掉落系统：不同关卡使用不同工厂生成装备。UI面板创建：PanelFactory 根据类型实例化不同 UI。',
+            code: `// 产品接口
+public interface IEnemy
+{
+    void Attack();
+    void TakeDamage(int amount);
+    int Health { get; }
+}
+
+// 具体产品：僵尸
+public class Zombie : IEnemy
+{
+    public int Health { get; private set; } = 50;
+
+    public void Attack()
+    {
+        Debug.Log("僵尸发起了撕咬攻击！");
+    }
+
+    public void TakeDamage(int amount)
+    {
+        Health -= amount;
+        Debug.Log($"僵尸受到了 {amount} 点伤害");
+    }
+}
+
+// 具体产品：骷髅兵
+public class Skeleton : IEnemy
+{
+    public int Health { get; private set; } = 30;
+
+    public void Attack()
+    {
+        Debug.Log("骷髅兵挥剑攻击！");
+    }
+
+    public void TakeDamage(int amount)
+    {
+        Health -= amount;
+        Debug.Log($"骷髅兵受到了 {amount} 点伤害");
+    }
+}
+
+// 抽象工厂
+public abstract class EnemyFactory : MonoBehaviour
+{
+    public abstract IEnemy CreateEnemy();
+    public abstract string FactoryName { get; }
+}
+
+// 具体工厂
+public class ZombieFactory : EnemyFactory
+{
+    public override IEnemy CreateEnemy() => new Zombie();
+    public override string FactoryName => "僵尸工厂";
+}
+
+// 使用
+public class Spawner : MonoBehaviour
+{
+    [SerializeField] private EnemyFactory factory;
+
+    void Start()
+    {
+        IEnemy enemy = factory.CreateEnemy();
+        enemy.Attack();
+    }
+}`,
+            pros: ['符合开闭原则，新增产品无需修改已有代码', '客户端与具体类解耦', '单一职责，创建逻辑集中管理'],
+            cons: ['每新增一个产品就要新增一个工厂类', '增加了代码复杂度和类的数量', '简单场景下可能过度设计'],
+            related: ['抽象工厂模式', '建造者模式', '原型模式']
+        },
+        {
+            id: 'object-pool',
+            name: '对象池模式',
+            nameEn: 'Object Pool',
+            category: 'creational',
+            icon: 'fa-recycle',
+            color: '#10b981',
+            definition: '预先创建并复用对象，避免频繁的实例化和销毁操作。Unity 中 Instantiate/Destroy 是高开销操作，对象池可显著提升性能。',
+            keyIdea: '不销毁不再使用的对象，而是将其回收并重置状态，放入池中等待下次使用。用 <strong>SetActive(false)</strong> 代替 Destroy，用 <strong>SetActive(true)</strong> 代替 Instantiate。',
+            participants: [
+                { name: 'ObjectPool', desc: '管理可复用对象的集合，提供获取和归还方法', color: '#10b981' },
+                { name: 'PooledObject', desc: '可池化的对象，需支持重置状态', color: '#f59e0b' },
+                { name: 'Client', desc: '向对象池请求对象，使用后归还', color: '#38bdf8' }
+            ],
+            unityScene: '子弹/弹幕系统：频繁创建和销毁子弹是对象池的经典场景。粒子效果：大量特效的创建回收。敌人波次：批量生成和消灭敌人。UI列表项：ScrollView 中的列表项复用。',
+            code: `public class BulletPool : MonoBehaviour
+{
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private int initialSize = 20;
+
+    private Queue<GameObject> pool = new Queue<GameObject>();
+
+    void Start()
+    {
+        // 预热：预先创建对象
+        for (int i = 0; i < initialSize; i++)
+        {
+            GameObject obj = Instantiate(bulletPrefab);
+            obj.SetActive(false);
+            obj.transform.SetParent(transform);
+            pool.Enqueue(obj);
+        }
+    }
+
+    // 从池中获取对象
+    public GameObject GetBullet(Vector3 position, Quaternion rotation)
+    {
+        GameObject bullet;
+
+        if (pool.Count > 0)
+        {
+            bullet = pool.Dequeue();
+        }
+        else
+        {
+            // 池为空时动态扩容
+            bullet = Instantiate(bulletPrefab);
+            bullet.transform.SetParent(transform);
+        }
+
+        bullet.transform.position = position;
+        bullet.transform.rotation = rotation;
+        bullet.SetActive(true);
+        return bullet;
+    }
+
+    // 将对象归还到池中
+    public void ReturnBullet(GameObject bullet)
+    {
+        bullet.SetActive(false);
+        bullet.transform.SetParent(transform);
+        pool.Enqueue(bullet);
+    }
+}
+
+// 子弹脚本
+public class Bullet : MonoBehaviour
+{
+    [SerializeField] private float speed = 20f;
+    [SerializeField] private float lifetime = 3f;
+    private BulletPool pool;
+
+    public void Initialize(BulletPool pool) => this.pool = pool;
+
+    void Update()
+    {
+        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        // 碰撞后归还池而非销毁
+        pool.ReturnBullet(gameObject);
+    }
+}`,
+            pros: ['避免频繁 Instantiate/Destroy，大幅减少 GC', '减少内存碎片，提升运行时性能', '可控制对象总量，防止内存溢出'],
+            cons: ['需要手动管理对象的生命周期', '对象状态重置容易遗漏', '增加了代码复杂度'],
+            related: ['单例模式', '原型模式', '工厂方法模式']
+        },
+        {
+            id: 'prototype',
+            name: '原型模式',
+            nameEn: 'Prototype',
+            category: 'creational',
+            icon: 'fa-clone',
+            color: '#10b981',
+            definition: '通过克隆已有对象来创建新对象，而非从头构建。Unity 中 ScriptableObject 天然支持此模式，Instantiate 本身也是原型模式的应用。',
+            keyIdea: '当创建新对象成本较高（如需要复杂初始化、数据库查询等）时，克隆一个已有对象更高效。Unity 的 <strong>ScriptableObject</strong> 是实现此模式的理想载体。',
+            participants: [
+                { name: 'Prototype', desc: '声明克隆自身的接口', color: '#10b981' },
+                { name: 'ConcretePrototype', desc: '实现克隆方法的具体类', color: '#f59e0b' },
+                { name: 'Client', desc: '通过调用克隆方法创建新对象', color: '#38bdf8' }
+            ],
+            unityScene: '物品系统：ScriptableObject 定义基础物品数据，运行时克隆并修改生成随机掉落。技能系统：基础技能作为原型，克隆后修改参数生成变体。角色配置：以已有角色为模板快速创建新角色。',
+            code: `// 使用 ScriptableObject 实现原型
+[CreateAssetMenu(fileName = "NewItem", menuName = "Inventory/Item")]
+public class Item : ScriptableObject
+{
+    public string itemName;
+    public Sprite icon;
+    public int value;
+    public float weight;
+    public bool isStackable;
+
+    // 克隆方法
+    public Item Clone()
+    {
+        Item clone = Instantiate(this);
+        return clone;
+    }
+}
+
+// 随机化克隆
+public class ItemDrop : MonoBehaviour
+{
+    public Item baseItem;
+
+    public Item GenerateDrop()
+    {
+        Item drop = baseItem.Clone();
+
+        // 克隆后修改属性，不影响原始模板
+        drop.value = Random.Range(
+            Mathf.RoundToInt(baseItem.value * 0.5f),
+            Mathf.RoundToInt(baseItem.value * 2f)
+        );
+        drop.itemName = $"{drop.itemName} +{Random.Range(1, 10)}";
+
+        Debug.Log($"掉落物品: {drop.itemName}, 价值: {drop.value}");
+        return drop;
+    }
+}
+
+// 配置多种原型
+public class ItemDatabase : MonoBehaviour
+{
+    public List<Item> prototypes = new List<Item>();
+
+    public Item GetRandomItem()
+    {
+        int index = Random.Range(0, prototypes.Count);
+        return prototypes[index].Clone();
+    }
+}`,
+            pros: ['避免重复初始化开销，克隆比新建更高效', '可通过修改克隆体产生变体，不影响原型', 'Unity 中 ScriptableObject 原生支持'],
+            cons: ['深拷贝/浅拷贝问题需要特别注意', '循环引用的克隆处理复杂', '克隆对象的初始化状态需仔细管理'],
+            related: ['工厂方法模式', '对象池模式', '建造者模式']
+        },
+        {
+            id: 'adapter',
+            name: '适配器模式',
+            nameEn: 'Adapter',
+            category: 'structural',
+            icon: 'fa-plug',
+            color: '#f59e0b',
+            definition: '将一个类的接口转换成客户端期望的另一个接口，使原本不兼容的类可以协同工作。就像不同标准的插头需要转换器一样。',
+            keyIdea: '创建一个适配器类，实现目标接口并持有被适配对象的引用，在接口方法中委托调用被适配对象的方法。在 Unity 中常用于整合第三方 SDK 或兼容新旧系统。',
+            participants: [
+                { name: 'ITarget', desc: '客户端期望的目标接口', color: '#10b981' },
+                { name: 'Adaptee', desc: '已有但接口不兼容的类', color: '#f59e0b' },
+                { name: 'Adapter', desc: '将 Adaptee 接口转换为 ITarget 接口', color: '#38bdf8' }
+            ],
+            unityScene: '输入系统适配：将旧 Input System 的 API 适配为新 Input System 接口。第三方 SDK 适配：将不同广告/分析 SDK 封装为统一接口。存档系统适配：将旧版存档格式转换为新版格式。',
+            code: `// 目标接口：新的输入系统
+public interface IInputSystem
+{
+    Vector2 GetMovement();
+    bool IsJumpPressed();
+    bool IsAttackPressed();
+}
+
+// 被适配者：旧输入系统
+public class LegacyInput
+{
+    public float GetHorizontal() => Input.GetAxis("Horizontal");
+    public float GetVertical() => Input.GetAxis("Vertical");
+    public bool GetJump() => Input.GetButtonDown("Jump");
+    public bool GetFire() => Input.GetButtonDown("Fire1");
+}
+
+// 适配器：将旧系统包装为新接口
+public class InputAdapter : IInputSystem
+{
+    private LegacyInput legacy = new LegacyInput();
+
+    public Vector2 GetMovement()
+    {
+        return new Vector2(
+            legacy.GetHorizontal(),
+            legacy.GetVertical()
+        );
+    }
+
+    public bool IsJumpPressed() => legacy.GetJump();
+    public bool IsAttackPressed() => legacy.GetFire();
+}
+
+// 客户端只依赖抽象接口
+public class PlayerController : MonoBehaviour
+{
+    private IInputSystem input;
+
+    void Start()
+    {
+        // 可随时替换为新输入系统的实现
+        input = new InputAdapter();
+    }
+
+    void Update()
+    {
+        Vector2 move = input.GetMovement();
+        transform.Translate(move * 5f * Time.deltaTime);
+
+        if (input.IsJumpPressed())
+            Jump();
+    }
+
+    void Jump() => Debug.Log("玩家跳跃！");
+}`,
+            pros: ['让不兼容的接口协同工作，无需修改原有代码', '符合开闭原则，通过新增适配器扩展功能', '统一不同子系统的访问方式'],
+            cons: ['增加了一层间接调用，略微影响性能', '过多适配器会使系统变得复杂', '可能掩盖本应重构的设计问题'],
+            related: ['装饰器模式', '外观模式', '策略模式']
+        },
+        {
+            id: 'decorator',
+            name: '装饰器模式',
+            nameEn: 'Decorator',
+            category: 'structural',
+            icon: 'fa-layer-group',
+            color: '#f59e0b',
+            definition: '动态地给对象添加额外职责，而不修改其类定义。通过包装（Wrapper）方式逐层叠加功能，比继承更加灵活。',
+            keyIdea: '装饰器和被装饰对象实现相同接口，装饰器内部持有被装饰对象的引用，在调用方法时添加额外行为。可以层层嵌套，像套娃一样叠加功能。',
+            participants: [
+                { name: 'IComponent', desc: '定义对象和装饰器的公共接口', color: '#10b981' },
+                { name: 'ConcreteComponent', desc: '被装饰的原始对象', color: '#f59e0b' },
+                { name: 'Decorator', desc: '持有 IComponent 引用，添加新行为', color: '#38bdf8' },
+                { name: 'ConcreteDecorator', desc: '具体的装饰实现', color: '#f43f5e' }
+            ],
+            unityScene: '武器附魔系统：基础武器可以叠加上火焰、冰霜、雷电等附魔。角色增益 Buff：速度加成、攻击加成可以叠加。技能强化：基础技能可以附加溅射、穿透、连锁等效果。',
+            code: `// 组件接口
+public interface IWeapon
+{
+    int GetDamage();
+    string GetDescription();
+}
+
+// 基础武器
+public class Sword : IWeapon
+{
+    public int GetDamage() => 10;
+    public string GetDescription() => "铁剑";
+}
+
+// 装饰器基类
+public abstract class WeaponDecorator : IWeapon
+{
+    protected IWeapon weapon;
+    protected WeaponDecorator(IWeapon w) => weapon = w;
+    public abstract int GetDamage();
+    public abstract string GetDescription();
+}
+
+// 火焰附魔装饰器
+public class FireEnchant : WeaponDecorator
+{
+    public FireEnchant(IWeapon w) : base(w) { }
+
+    public override int GetDamage()
+        => weapon.GetDamage() + 5;
+
+    public override string GetDescription()
+        => weapon.GetDescription() + " +火焰附魔";
+}
+
+// 冰霜附魔装饰器
+public class IceEnchant : WeaponDecorator
+{
+    public IceEnchant(IWeapon w) : base(w) { }
+
+    public override int GetDamage()
+        => weapon.GetDamage() + 3;
+
+    public override string GetDescription()
+        => weapon.GetDescription() + " +冰霜附魔";
+}
+
+// 使用：自由组合装饰器
+public class WeaponCrafting : MonoBehaviour
+{
+    void Start()
+    {
+        IWeapon weapon = new Sword();
+        Debug.Log($"{weapon.GetDescription()} - 伤害: {weapon.GetDamage()}");
+
+        // 叠加火焰附魔
+        weapon = new FireEnchant(weapon);
+        Debug.Log($"{weapon.GetDescription()} - 伤害: {weapon.GetDamage()}");
+
+        // 再叠加冰霜附魔
+        weapon = new IceEnchant(weapon);
+        Debug.Log($"{weapon.GetDescription()} - 伤害: {weapon.GetDamage()}");
+    }
+}`,
+            pros: ['比继承更灵活，可动态组合功能', '符合开闭原则，新增装饰器无需修改已有代码', '可按需叠加，避免"类爆炸"问题'],
+            cons: ['装饰器层数过多时调试困难', '增加许多小类，代码结构变复杂', '客户端需要理解装饰器的组合方式'],
+            related: ['策略模式', '适配器模式', '建造者模式']
+        },
+        {
+            id: 'facade',
+            name: '外观模式',
+            nameEn: 'Facade',
+            category: 'structural',
+            icon: 'fa-door-open',
+            color: '#f59e0b',
+            definition: '为复杂子系统提供一个统一的简化接口。外观模式隐藏了子系统的复杂性，客户端只需要与外观对象交互即可。',
+            keyIdea: '不封装子系统，只是提供一个更高层的统一入口。客户端仍可直接访问子系统，但大多数情况下通过外观对象操作更便捷。在 Unity 中常用于封装多系统协作的复杂流程。',
+            participants: [
+                { name: 'Facade', desc: '提供简化的高层接口，委托子系统完成工作', color: '#10b981' },
+                { name: 'Subsystem', desc: '实现具体功能的各个子系统', color: '#f59e0b' },
+                { name: 'Client', desc: '通过 Facade 与子系统交互', color: '#38bdf8' }
+            ],
+            unityScene: '游戏启动流程：初始化音频、UI、存档、网络等多个子系统。关卡加载：加载场景、生成敌人、设置玩家位置、播放BGM。存档系统：序列化玩家数据、世界状态、设置项。这些流程涉及多个子系统，外观模式提供一键操作。',
+            code: `// 子系统
+public class AudioSystem
+{
+    public void Initialize() => Debug.Log("音频系统初始化完成");
+    public void PlayBGM(string clip) => Debug.Log($"播放BGM: {clip}");
+}
+
+public class UISystem
+{
+    public void Initialize() => Debug.Log("UI系统初始化完成");
+    public void ShowPanel(string name) => Debug.Log($"显示面板: {name}");
+}
+
+public class SaveSystem
+{
+    public void Initialize() => Debug.Log("存档系统初始化完成");
+    public void LoadSave() => Debug.Log("加载存档数据");
+}
+
+public class NetworkSystem
+{
+    public void Initialize() => Debug.Log("网络系统初始化完成");
+    public void Connect() => Debug.Log("连接服务器...");
+}
+
+// 外观类
+public class GameLauncher : MonoBehaviour
+{
+    private AudioSystem audio = new AudioSystem();
+    private UISystem ui = new UISystem();
+    private SaveSystem save = new SaveSystem();
+    private NetworkSystem network = new NetworkSystem();
+
+    // 一键启动游戏
+    public void LaunchGame()
+    {
+        Debug.Log("=== 游戏启动中 ===");
+
+        audio.Initialize();
+        ui.Initialize();
+        save.Initialize();
+        network.Initialize();
+
+        save.LoadSave();
+        network.Connect();
+        audio.PlayBGM("MainTheme");
+        ui.ShowPanel("MainMenu");
+
+        Debug.Log("=== 启动完成 ===");
+    }
+
+    // 快速进入关卡
+    public void LoadLevel(int levelId)
+    {
+        save.LoadSave();
+        audio.PlayBGM($"Level{levelId}");
+        ui.ShowPanel("HUD");
+        Debug.Log($"关卡 {levelId} 加载完成");
+    }
+}`,
+            pros: ['简化复杂子系统的使用方式', '解耦客户端与子系统的直接依赖', '仍保留直接访问子系统的能力'],
+            cons: ['外观类可能变成新的"上帝对象"', '不够灵活，无法覆盖所有使用场景', '增加了一层间接调用'],
+            related: ['中介者模式', '单例模式', '适配器模式']
+        },
+        {
+            id: 'observer',
+            name: '观察者模式',
+            nameEn: 'Observer',
+            category: 'behavioral',
+            icon: 'fa-broadcast-tower',
+            color: '#38bdf8',
+            definition: '定义对象间一对多的依赖关系，当一个对象状态改变时，所有依赖它的对象都会收到通知并自动更新。UnityEvent 是此模式的官方实现。',
+            keyIdea: '被观察者维护一个观察者列表，状态变化时遍历通知。观察者可以随时注册或取消订阅。在 Unity 中推荐使用 <strong>UnityEvent</strong> 或 C# <strong>Action/Event</strong> 来实现。',
+            participants: [
+                { name: 'Subject', desc: '被观察者，维护观察者列表，状态变化时通知', color: '#10b981' },
+                { name: 'Observer', desc: '观察者，定义接收通知的接口', color: '#f59e0b' },
+                { name: 'ConcreteObserver', desc: '具体观察者，收到通知后执行具体操作', color: '#38bdf8' }
+            ],
+            unityScene: '血量系统：血量变化时通知血条UI、伤害数字、屏幕闪红效果。成就系统：达成条件时通知成就管理器解锁成就。任务系统：任务进度变化时通知任务面板更新。技能冷却：冷却结束时通知UI刷新。',
+            code: `// 使用 UnityEvent 实现观察者模式
+public class HealthSystem : MonoBehaviour
+{
+    // 定义事件
+    public UnityEvent<int> OnHealthChanged;
+    public UnityEvent OnDeath;
+
+    [SerializeField] private int maxHealth = 100;
+    private int currentHealth;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth = Mathf.Max(0, currentHealth - damage);
+
+        // 通知所有观察者
+        OnHealthChanged?.Invoke(currentHealth);
+
+        if (currentHealth <= 0)
+            OnDeath?.Invoke();
+    }
+
+    public void Heal(int amount)
+    {
+        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+        OnHealthChanged?.Invoke(currentHealth);
+    }
+}
+
+// 观察者：血条UI
+public class HealthBar : MonoBehaviour
+{
+    [SerializeField] private HealthSystem health;
+    [SerializeField] private Slider slider;
+    [SerializeField] private Image fillImage;
+
+    void Start()
+    {
+        // 注册观察
+        health.OnHealthChanged.AddListener(UpdateBar);
+        health.OnDeath.AddListener(OnPlayerDeath);
+    }
+
+    void OnDestroy()
+    {
+        // 取消注册，防止内存泄漏
+        health.OnHealthChanged.RemoveListener(UpdateBar);
+        health.OnDeath.RemoveListener(OnPlayerDeath);
+    }
+
+    void UpdateBar(int hp)
+    {
+        slider.value = hp;
+        fillImage.color = hp > 30 ? Color.green : Color.red;
+    }
+
+    void OnPlayerDeath()
+    {
+        fillImage.gameObject.SetActive(false);
+        Debug.Log("玩家已阵亡");
+    }
+}`,
+            pros: ['松耦合，被观察者不需要知道观察者的具体类', '支持广播通信，一对多通知', '符合开闭原则，新增观察者无需修改被观察者'],
+            cons: ['观察者过多时通知开销大', '观察者间的依赖关系不易追踪', '忘记取消注册会导致内存泄漏'],
+            related: ['中介者模式', '命令模式', '状态模式']
+        },
+        {
+            id: 'state',
+            name: '状态模式',
+            nameEn: 'State',
+            category: 'behavioral',
+            icon: 'fa-exchange-alt',
+            color: '#38bdf8',
+            definition: '允许对象在内部状态改变时改变其行为，对象看起来像是修改了其类。用类来表示状态，将状态转换逻辑从宿主类中分离出来。',
+            keyIdea: '每个状态封装为独立的类，实现统一的状态接口。上下文对象持有当前状态的引用，将行为委托给状态对象。状态切换通过替换当前状态引用实现。比 <strong>switch-case</strong> 更优雅、更易扩展。',
+            participants: [
+                { name: 'IState', desc: '状态接口，定义状态行为', color: '#10b981' },
+                { name: 'ConcreteState', desc: '具体状态，实现接口中定义的行为', color: '#f59e0b' },
+                { name: 'Context', desc: '持有当前状态，委托行为给状态对象', color: '#38bdf8' }
+            ],
+            unityScene: '角色状态机：待机、奔跑、跳跃、攻击、受伤等状态切换。敌人AI：巡逻、追击、攻击、逃跑等行为状态。游戏流程：菜单、加载、游戏中、暂停、结算等全局状态。宝箱/门：关闭、打开、锁定等交互状态。',
+            code: `// 状态接口
+public abstract class PlayerState
+{
+    protected PlayerController player;
+    protected PlayerState(PlayerController p) => player = p;
+
+    public abstract void Enter();
+    public abstract void Update();
+    public abstract void Exit();
+}
+
+// 待机状态
+public class IdleState : PlayerState
+{
+    public IdleState(PlayerController p) : base(p) { }
+
+    public override void Enter()
+    {
+        player.Animator.Play("Idle");
+    }
+
+    public override void Update()
+    {
+        float h = Input.GetAxisRaw("Horizontal");
+        float v = Input.GetAxisRaw("Vertical");
+
+        if (h != 0 || v != 0)
+            player.ChangeState(new RunState(player));
+        else if (Input.GetKeyDown(KeyCode.Space))
+            player.ChangeState(new JumpState(player));
+    }
+
+    public override void Exit() { }
+}
+
+// 跳跃状态
+public class JumpState : PlayerState
+{
+    public JumpState(PlayerController p) : base(p) { }
+
+    public override void Enter()
+    {
+        player.Animator.Play("Jump");
+        player.Rigidbody.AddForce(Vector3.up * 5f, ForceMode.Impulse);
+    }
+
+    public override void Update()
+    {
+        if (player.IsGrounded)
+            player.ChangeState(new IdleState(player));
+    }
+
+    public override void Exit() { }
+}
+
+// 上下文
+public class PlayerController : MonoBehaviour
+{
+    public Animator Animator;
+    public Rigidbody Rigidbody;
+    public bool IsGrounded;
+
+    private PlayerState currentState;
+
+    void Start() => ChangeState(new IdleState(this));
+
+    void Update() => currentState?.Update();
+
+    public void ChangeState(PlayerState newState)
+    {
+        currentState?.Exit();
+        currentState = newState;
+        currentState.Enter();
+    }
+}`,
+            pros: ['将状态逻辑分散到各个类中，避免巨大的 switch-case', '新增状态只需添加新类，符合开闭原则', '状态转换逻辑清晰，易于维护'],
+            cons: ['状态类数量增加，系统变复杂', '状态间共享数据需要通过上下文传递', '简单状态机可能过度设计'],
+            related: ['策略模式', '观察者模式', '命令模式']
+        },
+        {
+            id: 'command',
+            name: '命令模式',
+            nameEn: 'Command',
+            category: 'behavioral',
+            icon: 'fa-terminal',
+            color: '#38bdf8',
+            definition: '将请求封装为对象，从而可以对请求进行参数化、排队、记录日志和撤销操作。命令对象解耦了请求发送者和接收者。',
+            keyIdea: '将"做什么"和"谁来做"分离。命令对象包含执行（Execute）和撤销（Undo）方法。在 Unity 中常用于输入处理、技能系统和撤销/重做功能。',
+            participants: [
+                { name: 'ICommand', desc: '声明 Execute 和 Undo 接口', color: '#10b981' },
+                { name: 'ConcreteCommand', desc: '绑定接收者，实现具体操作', color: '#f59e0b' },
+                { name: 'Invoker', desc: '调用命令执行请求', color: '#38bdf8' },
+                { name: 'Receiver', desc: '执行实际工作的对象', color: '#f43f5e' }
+            ],
+            unityScene: '输入系统：将按键映射为命令对象，支持按键重绑定。撤销/重做：编辑器中的 Undo 功能，回合制游戏的悔棋。技能系统：将技能封装为命令，可以排队执行。回放系统：记录命令序列进行重放。',
+            code: `// 命令接口
+public interface ICommand
+{
+    void Execute();
+    void Undo();
+}
+
+// 移动命令
+public class MoveCommand : ICommand
+{
+    private Transform target;
+    private Vector3 direction;
+    private float distance;
+
+    public MoveCommand(Transform t, Vector3 dir, float dist)
+    {
+        target = t;
+        direction = dir;
+        distance = dist;
+    }
+
+    public void Execute()
+    {
+        target.position += direction * distance;
+    }
+
+    public void Undo()
+    {
+        target.position -= direction * distance;
+    }
+}
+
+// 输入处理器（调用者）
+public class InputHandler : MonoBehaviour
+{
+    private Stack<ICommand> history = new Stack<ICommand>();
+    private float moveDistance = 1f;
+
+    void Update()
+    {
+        ICommand cmd = null;
+
+        if (Input.GetKeyDown(KeyCode.W))
+            cmd = new MoveCommand(transform, Vector3.forward, moveDistance);
+        else if (Input.GetKeyDown(KeyCode.S))
+            cmd = new MoveCommand(transform, Vector3.back, moveDistance);
+        else if (Input.GetKeyDown(KeyCode.A))
+            cmd = new MoveCommand(transform, Vector3.left, moveDistance);
+        else if (Input.GetKeyDown(KeyCode.D))
+            cmd = new MoveCommand(transform, Vector3.right, moveDistance);
+        else if (Input.GetKeyDown(KeyCode.Z))
+        {
+            // 撤销上一步操作
+            if (history.Count > 0)
+                history.Pop().Undo();
+            return;
+        }
+
+        if (cmd != null)
+        {
+            cmd.Execute();
+            history.Push(cmd);
+        }
+    }
+}`,
+            pros: ['解耦请求发送者与接收者', '轻松实现撤销/重做功能', '命令可以排队、记录、延迟执行'],
+            cons: ['命令类数量增多', '简单的操作也需封装，增加复杂度', '撤销操作需要保存足够的状态信息'],
+            related: ['策略模式', '观察者模式', '状态模式']
+        },
+        {
+            id: 'strategy',
+            name: '策略模式',
+            nameEn: 'Strategy',
+            category: 'behavioral',
+            icon: 'fa-chess',
+            color: '#38bdf8',
+            definition: '定义一系列算法，将每个算法封装起来，并使它们可以互相替换。策略模式让算法的变化独立于使用它的客户端。',
+            keyIdea: '将不同的行为/策略封装为独立的类，实现统一接口。客户端持有策略引用，可运行时动态切换。与状态模式结构相似，但策略由客户端选择，状态由对象内部切换。',
+            participants: [
+                { name: 'IStrategy', desc: '策略接口，声明算法方法', color: '#10b981' },
+                { name: 'ConcreteStrategy', desc: '具体策略，实现不同的算法', color: '#f59e0b' },
+                { name: 'Context', desc: '持有策略引用，委托执行算法', color: '#38bdf8' }
+            ],
+            unityScene: '移动方式：角色可以切换行走、飞行、传送等移动策略。AI行为：敌人可以切换攻击型、防御型、逃跑型策略。武器系统：角色可以切换近战、远程、魔法等攻击策略。排序算法：根据数据量切换不同排序策略。',
+            code: `// 策略接口
+public interface IMoveStrategy
+{
+    void Move(Transform target);
+    string StrategyName { get; }
+}
+
+// 行走策略
+public class WalkStrategy : IMoveStrategy
+{
+    public string StrategyName => "行走";
+
+    public void Move(Transform target)
+    {
+        target.Translate(Vector3.forward * 3f * Time.deltaTime);
+    }
+}
+
+// 飞行策略
+public class FlyStrategy : IMoveStrategy
+{
+    public string StrategyName => "飞行";
+
+    public void Move(Transform target)
+    {
+        target.Translate(
+            Vector3.forward * 8f * Time.deltaTime);
+        target.Translate(
+            Vector3.up * Mathf.Sin(Time.time * 2f) * 0.5f * Time.deltaTime);
+    }
+}
+
+// 闪现策略
+public class TeleportStrategy : IMoveStrategy
+{
+    public string StrategyName => "闪现";
+    private float cooldown;
+
+    public void Move(Transform target)
+    {
+        cooldown -= Time.deltaTime;
+        if (cooldown <= 0)
+        {
+            target.position += target.forward * 10f;
+            cooldown = 2f;
+            Debug.Log("闪现！");
+        }
+    }
+}
+
+// 上下文
+public class Character : MonoBehaviour
+{
+    private IMoveStrategy moveStrategy = new WalkStrategy();
+
+    void Update()
+    {
+        moveStrategy.Move(transform);
+
+        // 按1/2/3键切换策略
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+            moveStrategy = new WalkStrategy();
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+            moveStrategy = new FlyStrategy();
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+            moveStrategy = new TeleportStrategy();
+    }
+
+    void OnGUI()
+    {
+        GUILayout.Label($"移动方式: {moveStrategy.StrategyName}");
+    }
+}`,
+            pros: ['算法可自由切换，运行时动态改变行为', '避免多重条件判断（if-else/switch）', '新增策略无需修改上下文，符合开闭原则'],
+            cons: ['客户端需要了解所有策略的区别来做出选择', '策略类数量增多', '策略与上下文间的数据传递需设计'],
+            related: ['状态模式', '命令模式', '装饰器模式']
+        },
+        {
+            id: 'mediator',
+            name: '中介者模式',
+            nameEn: 'Mediator',
+            category: 'behavioral',
+            icon: 'fa-project-diagram',
+            color: '#38bdf8',
+            definition: '用一个中介对象来封装一系列对象的交互。中介者使各对象不需要显式地相互引用，从而使其耦合松散，而且可以独立地改变它们之间的交互。',
+            keyIdea: '将多对多的交互转化为一对多。各组件只与中介者通信，由中介者协调组件间的协作。在 Unity 中常用于 UI 面板间的通信和游戏系统间的协调。',
+            participants: [
+                { name: 'IMediator', desc: '定义与各组件交互的接口', color: '#10b981' },
+                { name: 'ConcreteMediator', desc: '协调各组件的具体中介者', color: '#f59e0b' },
+                { name: 'Colleague', desc: '与中介者通信的组件', color: '#38bdf8' }
+            ],
+            unityScene: 'UI系统：主菜单、设置面板、背包面板之间通过中介者协调切换。游戏系统协调：战斗系统、任务系统、成就系统之间的事件传递。多人游戏：聊天中介者处理消息路由。',
+            code: `// 中介者接口
+public interface IGameMediator
+{
+    void Notify(string sender, string eventName);
+}
+
+// UI面板基类
+public abstract class UIPanel : MonoBehaviour
+{
+    protected IGameMediator mediator;
+
+    public void SetMediator(IGameMediator med) => mediator = med;
+    public abstract void Show();
+    public abstract void Hide();
+}
+
+// 主菜单面板
+public class MainMenuPanel : UIPanel
+{
+    public override void Show() => gameObject.SetActive(true);
+    public override void Hide() => gameObject.SetActive(false);
+
+    public void OnStartGame()
+        => mediator.Notify("MainMenu", "StartGame");
+
+    public void OnSettingsClick()
+        => mediator.Notify("MainMenu", "SettingsClicked");
+}
+
+// 设置面板
+public class SettingsPanel : UIPanel
+{
+    public override void Show() => gameObject.SetActive(true);
+    public override void Hide() => gameObject.SetActive(false);
+
+    public void OnBack()
+        => mediator.Notify("Settings", "BackClicked");
+
+    public void OnVolumeChanged(float vol)
+        => mediator.Notify("Settings", "VolumeChanged");
+}
+
+// 具体中介者
+public class GameUIMediator : MonoBehaviour, IGameMediator
+{
+    [SerializeField] private MainMenuPanel mainMenu;
+    [SerializeField] private SettingsPanel settings;
+    [SerializeField] private GameObject hudPanel;
+
+    void Start()
+    {
+        mainMenu.SetMediator(this);
+        settings.SetMediator(this);
+    }
+
+    public void Notify(string sender, string eventName)
+    {
+        if (sender == "MainMenu")
+        {
+            if (eventName == "StartGame")
+            {
+                mainMenu.Hide();
+                hudPanel.SetActive(true);
+                Debug.Log("游戏开始！");
+            }
+            else if (eventName == "SettingsClicked")
+            {
+                mainMenu.Hide();
+                settings.Show();
+            }
+        }
+        else if (sender == "Settings")
+        {
+            if (eventName == "BackClicked")
+            {
+                settings.Hide();
+                mainMenu.Show();
+            }
+        }
+    }
+}`,
+            pros: ['减少组件间的直接耦合，变多对多为1对多', '集中控制交互逻辑，便于维护', '组件可独立复用，不依赖其他组件'],
+            cons: ['中介者本身可能变得复杂庞大', '中介者故障会影响所有组件', '交互逻辑集中导致中介者难以理解'],
+            related: ['观察者模式', '外观模式', '命令模式']
+        }
+    ];
+
+    // ==================== C# 代码高亮 ====================
+    function highlightCSharp(code) {
+        // 先转义 HTML
+        code = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // 提取注释和字符串，用占位符保护
+        const tokens = [];
+        let tokenId = 0;
+
+        // 多行注释
+        code = code.replace(/(\/\*[\s\S]*?\*\/)/g, (m) => {
+            const id = `__TOKEN_${tokenId++}__`;
+            tokens.push({ id, html: `<span class="cmt">${m}</span>` });
+            return id;
+        });
+
+        // 单行注释
+        code = code.replace(/(\/\/.*)/g, (m) => {
+            const id = `__TOKEN_${tokenId++}__`;
+            tokens.push({ id, html: `<span class="cmt">${m}</span>` });
+            return id;
+        });
+
+        // 字符串（含插值字符串）
+        code = code.replace(/(\$?"(?:[^"\\]|\\.)*")/g, (m) => {
+            const id = `__TOKEN_${tokenId++}__`;
+            tokens.push({ id, html: `<span class="str">${m}</span>` });
+            return id;
+        });
+
+        // 关键字
+        const keywords = ['public','private','protected','internal','class','interface','abstract','virtual','override','sealed','partial','static','readonly','const','void','int','float','double','string','bool','var','new','return','if','else','for','foreach','while','do','switch','case','break','continue','this','base','null','true','false','typeof','as','is','in','out','ref','struct','enum','delegate','event','namespace','using','get','set','where','with'];
+        const kwRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'g');
+        code = code.replace(kwRegex, '<span class="kw">$1</span>');
+
+        // Unity 类型
+        const unityTypes = ['MonoBehaviour','Transform','GameObject','Vector3','Vector2','Quaternion','Color','Input','Debug','Collider','Rigidbody','Animator','SerializeField','CreateAssetMenu','ScriptableObject','DontDestroyOnLoad','UnityEvent','UnityAction','Mathf','ForceMode','SerializeField','Header','Range','Tooltip','SerializeField','StartCoroutine','Invoke','CancelInvoke','Queue','Stack','List','Dictionary','Action','Func'];
+        const utRegex = new RegExp(`\\b(${unityTypes.join('|')})\\b`, 'g');
+        code = code.replace(utRegex, '<span class="unity">$1</span>');
+
+        // 数字
+        code = code.replace(/\b(\d+\.?\d*f?)\b/g, '<span class="num">$1</span>');
+
+        // 方法调用 (简单匹配: 标识符后跟括号)
+        code = code.replace(/\b([A-Z][a-zA-Z]*)\s*(?=\()/g, '<span class="fn">$1</span>');
+
+        // 还原占位符
+        tokens.forEach(t => {
+            code = code.replace(t.id, t.html);
+        });
+
+        return code;
+    }
+
+    // ==================== 粒子背景 ====================
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouse = { x: -1000, y: -1000 };
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    function createParticles() {
+        particles = [];
+        const count = Math.min(80, Math.floor(window.innerWidth * window.innerHeight / 15000));
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                r: Math.random() * 2 + 1,
+                opacity: Math.random() * 0.4 + 0.1
+            });
+        }
+    }
+
+    function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 连线
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 150) {
+                    const alpha = (1 - dist / 150) * 0.15;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(16, 185, 129, ${alpha})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // 粒子
+        particles.forEach(p => {
+            // 鼠标排斥
+            const dx = p.x - mouse.x;
+            const dy = p.y - mouse.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120 && dist > 0) {
+                p.vx += (dx / dist) * 0.15;
+                p.vy += (dy / dist) * 0.15;
+            }
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // 阻尼
+            p.vx *= 0.99;
+            p.vy *= 0.99;
+
+            // 边界
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            p.x = Math.max(0, Math.min(canvas.width, p.x));
+            p.y = Math.max(0, Math.min(canvas.height, p.y));
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, Math.max(0.5, p.r), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(16, 185, 129, ${p.opacity})`;
+            ctx.fill();
+        });
+
+        requestAnimationFrame(drawParticles);
+    }
+
+    resizeCanvas();
+    createParticles();
+    drawParticles();
+
+    window.addEventListener('resize', () => { resizeCanvas(); createParticles(); });
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+    // ==================== 数字递增动画 ====================
+    function animateNumber(el, target, duration = 1200) {
+        let start = 0;
+        const startTime = performance.now();
+        function step(now) {
+            const progress = Math.min((now - startTime) / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(ease * target);
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    // 统计代码行数
+    let totalLines = 0;
+    patterns.forEach(p => { totalLines += p.code.split('\n').length; });
+
+    setTimeout(() => {
+        animateNumber(document.getElementById('statPatterns'), patterns.length);
+        animateNumber(document.getElementById('statCategories'), 3);
+        animateNumber(document.getElementById('statLines'), totalLines);
+    }, 400);
+
+    // ==================== 渲染卡片 ====================
+    const grid = document.getElementById('grid');
+    const categoryNames = { creational: '创建型', structural: '结构型', behavioral: '行为型' };
+    const categoryClasses = { creational: 'cat-creational', structural: 'cat-structural', behavioral: 'cat-behavioral' };
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    function getFilteredPatterns() {
+        return patterns.filter(p => {
+            const matchCat = currentFilter === 'all' || p.category === currentFilter;
+            const matchSearch = searchQuery === '' ||
+                p.name.toLowerCase().includes(searchQuery) ||
+                p.nameEn.toLowerCase().includes(searchQuery) ||
+                p.definition.toLowerCase().includes(searchQuery);
+            return matchCat && matchSearch;
+        });
+    }
+
+    function renderGrid() {
+        const filtered = getFilteredPatterns();
+        grid.innerHTML = '';
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <p>没有找到匹配的设计模式</p>
+                </div>`;
+            return;
+        }
+
+        filtered.forEach((p, i) => {
+            const card = document.createElement('div');
+            card.className = 'pattern-card card-enter';
+            card.style.setProperty('--card-accent', p.color);
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-label', `查看${p.name}详情`);
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-icon" style="background: linear-gradient(135deg, ${p.color}, ${p.color}88)">
+                        <i class="fas ${p.icon}"></i>
+                    </div>
+                    <span class="card-category ${categoryClasses[p.category]}">${categoryNames[p.category]}</span>
+                </div>
+                <div class="card-name">${p.name}</div>
+                <div class="card-name-en">${p.nameEn}</div>
+                <div class="card-def">${p.definition.substring(0, 60)}...</div>
+                <div class="card-key">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>${p.keyIdea.substring(0, 40).replace(/<[^>]*>/g, '')}...</span>
+                </div>
+            `;
+
+            card.addEventListener('click', () => openModal(p.id));
+            card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(p.id); });
+
+            grid.appendChild(card);
+
+            // 延迟出现动画
+            setTimeout(() => card.classList.add('visible'), 60 * i);
+        });
+    }
+
+    // ==================== 过滤器 ====================
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.cat;
+            renderGrid();
+        });
+    });
+
+    // ==================== 搜索 ====================
+    const searchInput = document.getElementById('searchInput');
+    let searchTimer;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            searchQuery = searchInput.value.trim().toLowerCase();
+            renderGrid();
+        }, 200);
+    });
+
+    // ==================== 模态框 ====================
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modal = document.getElementById('modal');
+    const modalClose = document.getElementById('modalClose');
+
+    function openModal(patternId) {
+        const p = patterns.find(x => x.id === patternId);
+        if (!p) return;
+
+        document.getElementById('modalIcon').style.background = `linear-gradient(135deg, ${p.color}, ${p.color}88)`;
+        document.getElementById('modalIcon').innerHTML = `<i class="fas ${p.icon}"></i>`;
+        document.getElementById('modalName').textContent = p.name;
+        document.getElementById('modalNameEn').textContent = p.nameEn + ' · ' + categoryNames[p.category];
+
+        // 构建详情内容
+        let html = '';
+
+        // 定义
+        html += `
+        <div class="modal-section">
+            <div class="modal-section-title"><i class="fas fa-book"></i> 定义</div>
+            <div class="modal-def">${p.definition}</div>
+        </div>`;
+
+        // 核心思想
+        html += `
+        <div class="modal-section">
+            <div class="modal-section-title"><i class="fas fa-lightbulb"></i> 核心思想</div>
+            <div class="modal-key-idea">${p.keyIdea}</div>
+        </div>`;
+
+        // 参与者
+        html += `
+        <div class="modal-section">
+            <div class="modal-section-title"><i class="fas fa-users"></i> 参与者角色</div>
+            <div class="participant-list">
+                ${p.participants.map(pt => `
+                    <div class="participant-item">
+                        <div class="role-dot" style="background: ${pt.color}"></div>
+                        <span class="role-name">${pt.name}</span>
+                        <span class="role-desc">${pt.desc}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+
+        // Unity场景
+        html += `
+        <div class="modal-section">
+            <div class="modal-section-title"><i class="fas fa-gamepad"></i> Unity 应用场景</div>
+            <div class="scene-card">
+                <i class="fas fa-unity"></i>
+                <p>${p.unityScene}</p>
+            </div>
+        </div>`;
+
+        // 代码
+        const highlightedCode = highlightCSharp(p.code);
+        html += `
+        <div class="modal-section">
+            <div class="modal-section-title"><i class="fas fa-code"></i> C# 代码示例</div>
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-dots"><span></span><span></span><span></span></div>
+                    <span class="code-lang">C#</span>
+                    <button class="code-copy" onclick="copyCode('${p.id}')">
+                        <i class="fas fa-copy"></i> 复制
+                    </button>
+                </div>
+                <pre class="code-content" id="code-${p.id}">${highlightedCode}</pre>
+            </div>
+        </div>`;
+
+        // 优缺点
+        html += `
+        <div class="modal-section">
+            <div class="modal-section-title"><i class="fas fa-balance-scale"></i> 优缺点分析</div>
+            <div class="pros-cons">
+                <div class="pros-list">
+                    <h4><i class="fas fa-check-circle"></i> 优点</h4>
+                    <ul>${p.pros.map(pro => `<li>${pro}</li>`).join('')}</ul>
+                </div>
+                <div class="cons-list">
+                    <h4><i class="fas fa-exclamation-circle"></i> 缺点</h4>
+                    <ul>${p.cons.map(con => `<li>${con}</li>`).join('')}</ul>
+                </div>
+            </div>
+        </div>`;
+
+        // 相关模式
+        html += `
+        <div class="modal-section">
+            <div class="modal-section-title"><i class="fas fa-link"></i> 相关模式</div>
+            <div class="related-list">
+                ${p.related.map(r => {
+                    const rp = patterns.find(x => x.name === r);
+                    return `<span class="related-tag" onclick="${rp ? `openModal('${rp.id}')` : ''}">${r}</span>`;
+                }).join('')}
+            </div>
+        </div>`;
+
+        document.getElementById('modalBody').innerHTML = html;
+
+        // 显示模态框
+        modalOverlay.classList.add('show');
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        modal.scrollTop = 0;
+    }
+
+    function closeModal() {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modalOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }, 100);
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('show')) closeModal();
+    });
+
+    // ==================== 复制代码 ====================
+    function copyCode(patternId) {
+        const p = patterns.find(x => x.id === patternId);
+        if (!p) return;
+        navigator.clipboard.writeText(p.code).then(() => {
+            showToast('代码已复制到剪贴板');
+        }).catch(() => {
+            showToast('复制失败，请手动选择复制');
+        });
+    }
+
+    // ==================== Toast ====================
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // ==================== 初始化 ====================
+    renderGrid();
+    </script>
+</body>
+</html>
