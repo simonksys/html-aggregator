@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏上瘾机制全解析</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8e6e0;
+    --muted: #888680;
+    --dim: #555350;
+    --accent1: #f0a04b;
+    --accent2: #6eb5ff;
+    --accent3: #a0e4b0;
+    --accent4: #e4a0c8;
+    --accent5: #c4a0e4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    padding: 100px 48px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .hero-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .2em;
+    color: var(--accent1);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-label::before {
+    content: '';
+    display: inline-block;
+    width: 28px;
+    height: 1px;
+    background: var(--accent1);
+  }
+
+  .hero h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(42px, 6vw, 76px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent1);
+  }
+
+  .hero-desc {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.8;
+    margin-bottom: 48px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--dim);
+    letter-spacing: .05em;
+  }
+
+  /* Decorative grid lines */
+  .hero-deco {
+    position: absolute;
+    right: 48px;
+    top: 80px;
+    width: 280px;
+    height: 280px;
+    opacity: 0.06;
+    background-image:
+      repeating-linear-gradient(0deg, var(--text) 0px, var(--text) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg, var(--text) 0px, var(--text) 1px, transparent 1px, transparent 40px);
+  }
+
+  /* ── NAV PILLS ── */
+  .nav-strip {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(14,14,16,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 48px;
+  }
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .nav-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .08em;
+    padding: 5px 12px;
+    border-radius: 99px;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    text-decoration: none;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .nav-pill:hover {
+    border-color: var(--accent1);
+    color: var(--accent1);
+  }
+
+  /* ── MECHANICS ── */
+  .mechanics {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 48px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mechanic {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: border-color .3s;
+    animation: fadeUp .5s ease both;
+  }
+  .mechanic:hover { border-color: var(--border2); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .mech-top {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    align-items: stretch;
+    min-height: 100px;
+  }
+
+  .mech-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--dim);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+  }
+
+  .mech-main {
+    padding: 24px 28px;
+  }
+
+  .mech-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+
+  .mech-icon {
+    font-size: 26px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .mech-name {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .mech-tag {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .mech-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 700px;
+  }
+
+  .mech-accent-bar {
+    width: 5px;
+    background: var(--accent-color, var(--accent1));
+    flex-shrink: 0;
+  }
+
+  /* Games section */
+  .mech-games {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 20px 28px 20px 100px;
+  }
+
+  .games-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 14px;
+  }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .game-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 14px 16px;
+    transition: border-color .2s;
+  }
+  .game-card:hover { border-color: var(--border2); }
+
+  .game-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .game-name::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-color, var(--accent1));
+    flex-shrink: 0;
+  }
+
+  .game-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* Accent color per mechanic */
+  .m1 { --accent-color: var(--accent1); }
+  .m2 { --accent-color: var(--accent3); }
+  .m3 { --accent-color: var(--accent2); }
+  .m4 { --accent-color: var(--accent4); }
+  .m5 { --accent-color: var(--accent5); }
+  .m6 { --accent-color: var(--accent3); }
+  .m7 { --accent-color: var(--accent1); }
+  .m8 { --accent-color: var(--accent4); }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-text {
+    font-size: 12px;
+    color: var(--dim);
+    font-family: 'Space Mono', monospace;
+  }
+  .footer-note {
+    font-size: 12px;
+    color: var(--dim);
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  /* ── ANIMATIONS delay ── */
+  .mechanic:nth-child(1) { animation-delay: .05s; }
+  .mechanic:nth-child(2) { animation-delay: .10s; }
+  .mechanic:nth-child(3) { animation-delay: .15s; }
+  .mechanic:nth-child(4) { animation-delay: .20s; }
+  .mechanic:nth-child(5) { animation-delay: .25s; }
+  .mechanic:nth-child(6) { animation-delay: .30s; }
+  .mechanic:nth-child(7) { animation-delay: .35s; }
+  .mechanic:nth-child(8) { animation-delay: .40s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    .hero { padding: 60px 24px 48px; }
+    .nav-strip { padding: 10px 24px; }
+    .mechanics { padding: 40px 24px 60px; }
+    .mech-top { grid-template-columns: 48px 1fr auto; }
+    .mech-number { font-size: 16px; }
+    .mech-games { padding-left: 24px; }
+    .footer { padding: 32px 24px; }
+    .hero-deco { display: none; }
+    .games-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-deco"></div>
+  <div class="hero-label">游戏设计研究</div>
+  <h1>让你<em>停不下来</em>的<br>游戏上瘾机制</h1>
+  <p class="hero-desc">游戏公司投入大量行为科学研究，设计出一套系统性的"上瘾机制"。了解这些机制，既是对游戏设计的欣赏，也是对自身行为的觉察。</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <span class="stat-num">8</span>
+      <span class="stat-label">核心机制</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">32</span>
+      <span class="stat-label">游戏案例</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">3</span>
+      <span class="stat-label">心理学理论支撑</span>
+    </div>
+  </div>
+</section>
+
+<!-- NAV -->
+<nav class="nav-strip">
+  <div class="nav-inner">
+    <a class="nav-pill" href="#m1">🎰 随机奖励</a>
+    <a class="nav-pill" href="#m2">📈 进度成就</a>
+    <a class="nav-pill" href="#m3">⏰ 每日签到</a>
+    <a class="nav-pill" href="#m4">🏆 社交竞争</a>
+    <a class="nav-pill" href="#m5">🔄 核心循环</a>
+    <a class="nav-pill" href="#m6">🌊 心流设计</a>
+    <a class="nav-pill" href="#m7">📅 限时稀缺</a>
+    <a class="nav-pill" href="#m8">🤝 社交绑定</a>
+  </div>
+</nav>
+
+<!-- MECHANICS -->
+<main class="mechanics">
+
+  <!-- 1 随机奖励 -->
+  <article class="mechanic m1" id="m1">
+    <div class="mech-top">
+      <div class="mech-number">01</div>
+      <div class="mech-main">
+        <div class="mech-header">
+          <span class="mech-icon">🎰</span>
+          <div>
+            <div class="mech-name">随机奖励 / 变比强化</div>
+            <div class="mech-tag">心理学核心机制 · 不确定性制造持续期待感</div>
+          </div>
+        </div>
+        <p class="mech-desc">来自行为心理学的"变比强化"——不规律的随机奖励比固定奖励更容易让人上瘾。就像老虎机，玩家永远不知道下次开箱会是什么，正是这种不确定感让人欲罢不能。心理学家 B.F. Skinner 的鸽子实验证明：随机出现的奖励会让行为频率达到最高。</p>
+      </div>
+      <div class="mech-accent-bar"></div>
+    </div>
+    <div class="mech-games">
+      <div class="games-label">游戏案例</div>
+      <div class="games-grid">
+        <div class="game-card"><div class="game-name">《原神》</div><div class="game-desc">祈愿抽卡 + 保底机制，让"再抽一次"的冲动极难抵抗</div></div>
+        <div class="game-card"><div class="game-name">《守望先锋》</div><div class="game-desc">战利品箱随机开出皮肤，引发持续购买欲望</div></div>
+        <div class="game-card"><div class="game-name">《暗黑破坏神》</div><div class="game-desc">装备词缀随机生成，每次击杀都可能爆出传奇词条</div></div>
+        <div class="game-card"><div class="game-name">《Vampire Survivors》</div><div class="game-desc">随机技能选择，每局体验截然不同，驱动反复游玩</div></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 2 进度成就 -->
+  <article class="mechanic m2" id="m2">
+    <div class="mech-top">
+      <div class="mech-number">02</div>
+      <div class="mech-main">
+        <div class="mech-header">
+          <span class="mech-icon">📈</span>
+          <div>
+            <div class="mech-name">进度条与成就 / 收集系统</div>
+            <div class="mech-tag">蔡格尼克效应 · 可见进展刺激持续行动</div>
+          </div>
+        </div>
+        <p class="mech-desc">人类天生厌恶未完成状态（蔡格尼克效应）。进度条、成就列表、收集图鉴——只要还差一点点就满了，大脑就会驱使玩家继续。"再刷一个就凑齐了"是几乎所有收集类游戏的核心钩子。</p>
+      </div>
+      <div class="mech-accent-bar"></div>
+    </div>
+    <div class="mech-games">
+      <div class="games-label">游戏案例</div>
+      <div class="games-grid">
+        <div class="game-card"><div class="game-name">《动物森友会》</div><div class="game-desc">博物馆图鉴、岛屿评级，永远有下一个收集目标</div></div>
+        <div class="game-card"><div class="game-name">《英雄联盟》</div><div class="game-desc">段位积分、英雄碎片、任务进度，多条进度同时推进</div></div>
+        <div class="game-card"><div class="game-name">《糖果传奇》</div><div class="game-desc">关卡进度条让玩家感觉"再一关就通关了"</div></div>
+        <div class="game-card"><div class="game-name">《Pokemon GO》</div><div class="game-desc">图鉴收集驱动玩家实际出行，进度感极强</div></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 3 每日签到 -->
+  <article class="mechanic m3" id="m3">
+    <div class="mech-top">
+      <div class="mech-number">03</div>
+      <div class="mech-main">
+        <div class="mech-header">
+          <span class="mech-icon">⏰</span>
+          <div>
+            <div class="mech-name">每日登录奖励 / 签到系统</div>
+            <div class="mech-tag">习惯养成 · 损失厌恶 · 断签损失感</div>
+          </div>
+        </div>
+        <p class="mech-desc">通过连续登录奖励制造"断签损失感"，让玩家把每天打开游戏变成像刷牙一样的习惯。即使今天没时间玩，也要登录签个到——游戏已经渗透进日常生活节奏。损失厌恶（Loss Aversion）在这里发挥关键作用。</p>
+      </div>
+      <div class="mech-accent-bar"></div>
+    </div>
+    <div class="mech-games">
+      <div class="games-label">游戏案例</div>
+      <div class="games-grid">
+        <div class="game-card"><div class="game-name">《原神》</div><div class="game-desc">每日委托 + 树脂恢复 + 签到礼包，三套机制强制每日上线</div></div>
+        <div class="game-card"><div class="game-name">《炉石传说》</div><div class="game-desc">每日任务可刷新3个，驱动高频登录</div></div>
+        <div class="game-card"><div class="game-name">《明日方舟》</div><div class="game-desc">理智自动恢复，玩家定时回来消耗资源</div></div>
+        <div class="game-card"><div class="game-name">《王者荣耀》</div><div class="game-desc">签到礼包 + 每日任务 + 好友福利，多重机制叠加</div></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 4 社交竞争 -->
+  <article class="mechanic m4" id="m4">
+    <div class="mech-top">
+      <div class="mech-number">04</div>
+      <div class="mech-main">
+        <div class="mech-header">
+          <span class="mech-icon">🏆</span>
+          <div>
+            <div class="mech-name">社交竞争 / 排行榜</div>
+            <div class="mech-tag">社会比较理论 · 荣誉感与攀比驱动</div>
+          </div>
+        </div>
+        <p class="mech-desc">人类有强烈的社会比较欲望。排行榜让玩家清楚看到与他人的差距，"好友比我高一名"的刺激远比单纯刷怪更有驱动力。尤其当排名对象是真实认识的人时，竞争动力会成倍放大。</p>
+      </div>
+      <div class="mech-accent-bar"></div>
+    </div>
+    <div class="mech-games">
+      <div class="games-label">游戏案例</div>
+      <div class="games-grid">
+        <div class="game-card"><div class="game-name">《糖果传奇》</div><div class="game-desc">Facebook好友排行榜，比陌生人排名更有压迫感</div></div>
+        <div class="game-card"><div class="game-name">《Clash of Clans》</div><div class="game-desc">部落战争 + 捐兵排名，直接绑定真实社交网络</div></div>
+        <div class="game-card"><div class="game-name">《英雄联盟》</div><div class="game-desc">段位天梯系统，玩家为"不掉段"连续熬夜</div></div>
+        <div class="game-card"><div class="game-name">《健身环大冒险》</div><div class="game-desc">好友步数排名，连运动量都变成了竞技场</div></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 5 核心循环 -->
+  <article class="mechanic m5" id="m5">
+    <div class="mech-top">
+      <div class="mech-number">05</div>
+      <div class="mech-main">
+        <div class="mech-header">
+          <span class="mech-icon">🔄</span>
+          <div>
+            <div class="mech-name">核心游戏循环（Core Loop）</div>
+            <div class="mech-tag">即时反馈 · 短而爽的行动闭环</div>
+          </div>
+        </div>
+        <p class="mech-desc">一个好的核心循环是 3～5 分钟内完整的"行动→反馈→奖励"闭环。玩家在循环内获得即时满足，循环结束时新目标自然出现，让人不知不觉进入下一次循环。循环越短、反馈越爽，停下来就越难。</p>
+      </div>
+      <div class="mech-accent-bar"></div>
+    </div>
+    <div class="mech-games">
+      <div class="games-label">游戏案例</div>
+      <div class="games-grid">
+        <div class="game-card"><div class="game-name">《部落冲突》</div><div class="game-desc">进攻→获资源→升建筑→等待→再进攻，极简闭环</div></div>
+        <div class="game-card"><div class="game-name">《Brawl Stars》</div><div class="game-desc">3分钟一局，输了想翻盘，赢了想乘胜追击</div></div>
+        <div class="game-card"><div class="game-name">《Among Us》</div><div class="game-desc">快节奏一局，社交情绪激烈，天然驱动"再来一局"</div></div>
+        <div class="game-card"><div class="game-name">《Flappy Bird》</div><div class="game-desc">极简循环，失败即可重来，零阻力进入下次尝试</div></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 6 心流 -->
+  <article class="mechanic m6" id="m6">
+    <div class="mech-top">
+      <div class="mech-number">06</div>
+      <div class="mech-main">
+        <div class="mech-header">
+          <span class="mech-icon">🌊</span>
+          <div>
+            <div class="mech-name">心流（Flow）状态设计</div>
+            <div class="mech-tag">Csikszentmihalyi 心流理论 · 让人忘记时间</div>
+          </div>
+        </div>
+        <p class="mech-desc">当游戏难度与玩家技能完美匹配时，玩家进入"心流"状态——完全忘记时间和疲劳。好的游戏动态调整难度，既不因太简单而无聊，又不因太难而挫败，始终把玩家保持在心流区间里。</p>
+      </div>
+      <div class="mech-accent-bar"></div>
+    </div>
+    <div class="mech-games">
+      <div class="games-label">游戏案例</div>
+      <div class="games-grid">
+        <div class="game-card"><div class="game-name">《黑神话：悟空》</div><div class="game-desc">Boss设计循序渐进，击败强敌的成就感极度上头</div></div>
+        <div class="game-card"><div class="game-name">《节奏光剑》</div><div class="game-desc">音乐难度分级精准，驱动玩家持续挑战更高BPM</div></div>
+        <div class="game-card"><div class="game-name">《俄罗斯方块》</div><div class="game-desc">速度随分数提升，几乎完美的动态难度曲线</div></div>
+        <div class="game-card"><div class="game-name">《魔兽世界》</div><div class="game-desc">团队副本难度梯度设计，让玩家花数周攻克同一Boss</div></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 7 限时稀缺 -->
+  <article class="mechanic m7" id="m7">
+    <div class="mech-top">
+      <div class="mech-number">07</div>
+      <div class="mech-main">
+        <div class="mech-header">
+          <span class="mech-icon">📅</span>
+          <div>
+            <div class="mech-name">限时活动与稀缺性</div>
+            <div class="mech-tag">FOMO（错失恐惧）· 错过就没了的紧迫感</div>
+          </div>
+        </div>
+        <p class="mech-desc">限时皮肤、季节活动、Battle Pass 倒计时——"错失恐惧（FOMO）"是强大的行为驱动力。玩家明知这是营销策略，却依然难以抵抗"这次不参与就永远没了"的心理压力，因为损失厌恶天生强于获得欲望。</p>
+      </div>
+      <div class="mech-accent-bar"></div>
+    </div>
+    <div class="mech-games">
+      <div class="games-label">游戏案例</div>
+      <div class="games-grid">
+        <div class="game-card"><div class="game-name">《堡垒之夜》</div><div class="game-desc">Battle Pass 赛季限定皮肤，倒计时精确到秒</div></div>
+        <div class="game-card"><div class="game-name">《原神》</div><div class="game-desc">限定角色复刻间隔极长，UP卡池制造持续稀缺感</div></div>
+        <div class="game-card"><div class="game-name">《动物森友会》</div><div class="game-desc">节日限定家具和NPC仅节日出现，错过等明年</div></div>
+        <div class="game-card"><div class="game-name">《Pokemon GO》</div><div class="game-desc">传说系列限时团战，必须在特定时间窗口参与</div></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 8 社交绑定 -->
+  <article class="mechanic m8" id="m8">
+    <div class="mech-top">
+      <div class="mech-number">08</div>
+      <div class="mech-main">
+        <div class="mech-header">
+          <span class="mech-icon">🤝</span>
+          <div>
+            <div class="mech-name">社交绑定 / 公会系统</div>
+            <div class="mech-tag">社会责任感 · 人际关系成为留存锚点</div>
+          </div>
+        </div>
+        <p class="mech-desc">当游戏中有真实的朋友和社群，离开的成本大幅上升。公会需要你定期贡献，好友在等你开黑——离开意味着辜负真实的人际关系。社交责任感往往比游戏本身更难摆脱，这也是为什么 MMO 玩家最难"戒游戏"。</p>
+      </div>
+      <div class="mech-accent-bar"></div>
+    </div>
+    <div class="mech-games">
+      <div class="games-label">游戏案例</div>
+      <div class="games-grid">
+        <div class="game-card"><div class="game-name">《魔兽世界》</div><div class="game-desc">公会团本要求固定时间在线，形成强社会契约</div></div>
+        <div class="game-card"><div class="game-name">《Clash of Clans》</div><div class="game-desc">部落战争需全员参与，缺席会影响整个团队</div></div>
+        <div class="game-card"><div class="game-name">《王者荣耀》</div><div class="game-desc">好友开黑让游戏成为日常社交基础设施</div></div>
+        <div class="game-card"><div class="game-name">《Among Us》</div><div class="game-desc">纯社交驱动，体验完全依赖与朋友的互动</div></div>
+      </div>
+    </div>
+  </article>
+
+</main>
+
+<!-- FOOTER -->
+<footer style="border-top: 1px solid var(--border); padding: 40px 48px; max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+  <div>
+    <div style="font-family:'Space Mono',monospace; font-size:11px; color:var(--dim); margin-bottom:8px;">参考理论</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.8;">
+      B.F. Skinner — 变比强化理论<br>
+      Bluma Zeigarnik — 蔡格尼克效应<br>
+      Mihaly Csikszentmihalyi — 心流理论<br>
+      Daniel Kahneman — 损失厌恶 / 前景理论
+    </div>
+  </div>
+  <div style="font-size:12px; color:var(--dim); max-width:360px; line-height:1.8; text-align:right;">
+    了解这些机制，不是为了抵制游戏，<br>而是为了在"再玩一局"时，能做出更有意识的选择。
+  </div>
+</footer>
+
+</body>
+</html>
