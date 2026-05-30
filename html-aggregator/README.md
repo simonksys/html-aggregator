@@ -21,7 +21,7 @@ public/single-pages/
 
 本地开发时刷新首页即可看到新页面。
 
-## 部署到 Vercel
+## 部署到 Vercel (自动部署已配置)
 
 这个项目可以直接部署到 Vercel。Vercel 会扫描部署包中的 `public/single-pages/` 文件；新增 HTML 文件后需要重新部署，但不需要修改任何代码。
 
